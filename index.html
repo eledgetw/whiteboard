@@ -777,24 +777,25 @@
     <!-- 右上角匯出 -->
     <div class="fixed top-4 right-4 z-20 flex items-center gap-2">
       <button
-        id="export-btn"
-        class="flex items-center gap-2 bg-[#6965db] hover:bg-[#5b57ce] text-white px-4 py-2 rounded-lg shadow-md transition-colors text-sm font-medium"
+        id="save-project-btn"
+        class="flex items-center justify-center bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 w-10 h-10 rounded-lg shadow-sm transition-colors"
+        title="匯出專案存檔 (.json)"
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" x2="12" y1="15" y2="3" />
-        </svg>
-        匯出圖片
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      </button>
+      <button
+        id="load-project-btn"
+        class="flex items-center justify-center bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 w-10 h-10 rounded-lg shadow-sm transition-colors"
+        title="載入專案存檔"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+      </button>
+      <button
+        id="export-btn"
+        class="flex items-center justify-center bg-[#6965db] hover:bg-[#5b57ce] text-white w-10 h-10 rounded-lg shadow-md transition-colors"
+        title="匯出圖片 (.png)"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
       </button>
     </div>
 
@@ -811,6 +812,7 @@
       id="file-input"
       accept="image/png, image/jpeg, image/gif, image/webp"
     />
+    <input type="file" id="project-input" accept=".json,.html" style="display:none;" />
 
     <script>
       const canvas = document.getElementById("board");
@@ -1464,7 +1466,9 @@
         return copy;
       }
 
-      canvas.addEventListener("mousedown", (e) => {
+      // 支援滑鼠、觸控與觸控筆
+      canvas.addEventListener("pointerdown", (e) => {
+        if (e.pointerId) canvas.setPointerCapture(e.pointerId); // 讓觸控筆不會因為滑太快斷線
         const pos = getMousePos(e);
 
         if (isSpacePressed || e.button === 1 || currentTool === "hand") {
@@ -1584,7 +1588,7 @@
         }
       });
 
-      canvas.addEventListener("mousemove", (e) => {
+      canvas.addEventListener("pointermove", (e) => {
         const pos = getMousePos(e);
 
         if (isPanning) {
@@ -1754,7 +1758,8 @@
         render();
       });
 
-      canvas.addEventListener("mouseup", (e) => {
+      canvas.addEventListener("pointerup", (e) => {
+        if (e.pointerId) canvas.releasePointerCapture(e.pointerId); // 釋放觸控筆捕捉
         if (isPanning) {
           isPanning = false;
           saveToLocalStorage(); // 紀錄平移後的座標
@@ -1957,6 +1962,8 @@
           
           let finalVal = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n').trim();
           if (editingIndex !== -1) {
+            if (window.elements[editingIndex]) delete window.elements[editingIndex].isEditing; // 解除隱藏標記
+            
             if (finalVal === "") window.elements.splice(editingIndex, 1);
             else {
               window.elements[editingIndex].text = finalVal;
@@ -1974,13 +1981,20 @@
         };
       }
 
-      // 雙擊畫布偵測文字物件進入編輯模式
+      // 雙擊畫布偵測文字物件進入編輯模式 (修正編輯框偏移與殘影)
       canvas.addEventListener("dblclick", (e) => {
         const pos = getMousePos(e);
         for (let i = window.elements.length - 1; i >= 0; i--) {
           const el = window.elements[i];
           if (el.type === "text" && hitTest(pos.x, pos.y, el)) {
-            startTextEdit(e.clientX, e.clientY, el.x, el.y, el.text, i);
+            const bounds = getElementBounds(el);
+            // 計算文字方塊真實的絕對螢幕座標，而非滑鼠點擊位置
+            const screenX = bounds.minX * scale + offsetX;
+            const screenY = bounds.minY * scale + offsetY;
+            
+            el.isEditing = true; // 標記為編輯中，讓畫布暫時隱藏此文字避免重疊殘影
+            startTextEdit(screenX, screenY, el.x, el.y, el.text, i);
+            render();
             return;
           }
         }
@@ -2275,6 +2289,7 @@
         ctx.scale(scale, scale); // 套用繪圖內容的縮放
 
         window.elements.forEach((el, index) => {
+          if (el.isEditing) return; // 編輯中的文字暫不渲染，避免與輸入框重疊產生殘影
           drawElement(ctx, el);
           if (index === selectedElementIndex) drawSelectionBox(ctx, el);
         });
@@ -2315,7 +2330,7 @@
         showToast("已清空畫布");
       });
 
-      // 匯出按鈕
+      // 匯出圖片按鈕
       document.getElementById("export-btn").addEventListener("click", () => {
         const tempCanvas = document.createElement("canvas");
         tempCanvas.width = canvas.width;
@@ -2331,6 +2346,67 @@
         link.download = `老人的白板-${new Date().getTime()}.png`;
         link.href = tempCanvas.toDataURL("image/png");
         link.click();
+      });
+
+      // 匯出專案存檔 (儲存所有物件狀態)
+      document.getElementById("save-project-btn").addEventListener("click", () => {
+        const data = {
+          elements: window.elements.map(el => {
+            if (el.type === 'image') {
+              const { img, ...rest } = el; // 移除不可序列化的 img 物件
+              return rest;
+            }
+            return el;
+          }),
+          offsetX, offsetY, scale
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `老人的白板專案-${new Date().getTime()}.json`;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // 點擊載入專案按鈕
+      document.getElementById("load-project-btn").addEventListener("click", () => {
+        document.getElementById("project-input").click();
+      });
+
+      // 處理專案檔案讀取與狀態還原
+      document.getElementById("project-input").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            window.elements = data.elements || [];
+            offsetX = data.offsetX || 0;
+            offsetY = data.offsetY || 0;
+            scale = data.scale || 1;
+            
+            // 恢復圖片物件實體
+            window.elements.forEach((el) => {
+              if (el.type === "image" && el.dataUrl) {
+                const img = new Image();
+                img.onload = () => render();
+                img.src = el.dataUrl;
+                el.img = img;
+              }
+            });
+            
+            selectedElementIndex = -1;
+            render();
+            saveHistory(); // 紀錄歷史以便復原
+            showToast("專案已成功載入");
+          } catch (err) {
+            showToast("載入失敗：檔案格式錯誤");
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = ""; 
       });
 
       // 實作 Mac 用戶按住 Command (metaKey) 的滑鼠滾輪縮放，以及一般的滾輪平移
