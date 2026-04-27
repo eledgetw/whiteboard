@@ -629,7 +629,7 @@
           <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit items-center">
             <button
               class="prop-btn w-10"
-              onclick="changeFontSize(-4)"
+              onmousedown="event.preventDefault(); changeFontSize(-4)"
               title="縮小"
             >
               <svg
@@ -651,7 +651,7 @@
             </div>
             <button
               class="prop-btn w-10"
-              onclick="changeFontSize(4)"
+              onmousedown="event.preventDefault(); changeFontSize(4)"
               title="放大"
             >
               <svg
@@ -674,6 +674,14 @@
             <button class="prop-btn w-10" data-prop="textAlign" data-val="left" title="靠左"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg></button>
             <button class="prop-btn w-10 active" data-prop="textAlign" data-val="center" title="置中"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg></button>
             <button class="prop-btn w-10" data-prop="textAlign" data-val="right" title="靠右"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg></button>
+          </div>
+        </div>
+        <div id="panel-list-type">
+          <label class="text-xs text-gray-700 font-medium mb-2 block">項目符號 (List)</label>
+          <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit">
+            <button class="prop-btn w-10 active" data-prop="listType" data-val="none" title="無"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+            <button class="prop-btn w-10" data-prop="listType" data-val="bullet" title="項目符號"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"></line><line x1="9" y1="12" x2="20" y2="12"></line><line x1="9" y1="18" x2="20" y2="18"></line><circle cx="4" cy="6" r="1.5"></circle><circle cx="4" cy="12" r="1.5"></circle><circle cx="4" cy="18" r="1.5"></circle></svg></button>
+            <button class="prop-btn w-10" data-prop="listType" data-val="number" title="數字項目符號"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="20" y2="6"></line><line x1="10" y1="12" x2="20" y2="12"></line><line x1="10" y1="18" x2="20" y2="18"></line><path d="M4 4v4"></path><path d="M4 12h2"></path><path d="M4 18h2"></path></svg></button>
           </div>
         </div>
         <div
@@ -912,26 +920,25 @@
         strokeStyle: "solid",
         edges: "sharp",
         fontSize: 24, 
-        textAlign: "center", // 預設置中
+        textAlign: "center", 
+        listType: "none", // 項目符號預設為無
       };
 
-      // 修改字體大小的全局函數
+      // 修改字體大小的全局函數 (同步更新編輯中狀態)
       window.changeFontSize = function (delta) {
-        currProps.fontSize = Math.max(
-          12,
-          Math.min(120, currProps.fontSize + delta),
-        );
-        document.getElementById("font-size-display").textContent =
-          currProps.fontSize;
+        currProps.fontSize = Math.max(12, Math.min(120, currProps.fontSize + delta));
+        document.getElementById("font-size-display").textContent = currProps.fontSize;
 
-        // 如果當前有選取文字，立即套用變更
-        if (
-          selectedElementIndex !== -1 &&
-          window.elements[selectedElementIndex].type === "text"
-        ) {
+        // 如果正在編輯文字，即時縮放輸入框
+        if (textInput.style.display === "block") {
+          textInput.style.fontSize = currProps.fontSize + "px";
+          textInput.style.height = textInput.scrollHeight + "px";
+          textInput.focus();
+        }
+
+        if (selectedElementIndex !== -1 && window.elements[selectedElementIndex].type === "text") {
           window.elements[selectedElementIndex].fontSize = currProps.fontSize;
-          render();
-          saveHistory();
+          render(); saveHistory();
         }
       };
 
@@ -1024,7 +1031,7 @@
         isDraggingPanel = false;
       });
 
-      // 更新屬性面板的顯示狀態 (加入對齊選項控制)
+      // 更新屬性面板的顯示狀態 (支援對齊與列表控制)
       function updatePropertiesPanel() {
         const isDrawingTool = ["rectangle", "diamond", "ellipse", "arrow", "line", "pencil", "text"].includes(currentTool);
         const hasSelection = selectedElementIndex !== -1 && currentTool === "select";
@@ -1040,6 +1047,7 @@
         const edgesControl = document.getElementById("panel-edges");
         const fontSizeControl = document.getElementById("panel-font-size");
         const textAlignControl = document.getElementById("panel-text-align");
+        const listTypeControl = document.getElementById("panel-list-type"); // 加入列表控制項
 
         if (hasSelection) {
           layerControls.style.display = "block";
@@ -1050,6 +1058,7 @@
           if (el.strokeStyle) updatePropUI("strokeStyle", el.strokeStyle);
           if (el.edges) updatePropUI("edges", el.edges);
           if (el.textAlign) updatePropUI("textAlign", el.textAlign);
+          if (el.listType) updatePropUI("listType", el.listType); // 同步列表類型 UI
 
           if (el.type === "text") {
             currProps.fontSize = el.fontSize || 24;
@@ -1059,6 +1068,7 @@
           edgesControl.style.display = ["rectangle", "diamond"].includes(el.type) ? "block" : "none";
           fontSizeControl.style.display = el.type === "text" ? "block" : "none";
           textAlignControl.style.display = el.type === "text" ? "block" : "none";
+          listTypeControl.style.display = el.type === "text" ? "block" : "none"; // 文字工具才顯示列表設定
         } else {
           layerControls.style.display = "none";
           updatePropUI("strokeColor", currProps.strokeColor);
@@ -1067,11 +1077,13 @@
           updatePropUI("strokeStyle", currProps.strokeStyle);
           updatePropUI("edges", currProps.edges);
           updatePropUI("textAlign", currProps.textAlign);
+          updatePropUI("listType", currProps.listType); // 同步列表類型 UI
           document.getElementById("font-size-display").textContent = currProps.fontSize;
 
           edgesControl.style.display = ["rectangle", "diamond"].includes(currentTool) ? "block" : "none";
           fontSizeControl.style.display = currentTool === "text" ? "block" : "none";
           textAlignControl.style.display = currentTool === "text" ? "block" : "none";
+          listTypeControl.style.display = currentTool === "text" ? "block" : "none"; // 文字工具才顯示列表設定
         }
       }
 
@@ -1082,26 +1094,48 @@
         });
       }
 
-      // 綁定屬性按鈕事件
+      // 綁定屬性按鈕事件 (支援編輯中同步與焦點維持)
       document.querySelectorAll(".prop-btn[data-prop]").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const prop = btn.dataset.prop;
-          const val = btn.dataset.val;
+        // 防止點擊屬性按鈕導致文字方塊失焦跳出
+        btn.addEventListener("mousedown", (e) => {
+          if (textInput.style.display === "block") e.preventDefault();
+        });
 
-          currProps[prop] =
-            isNaN(val) ||
-            val === "transparent" ||
-            val === "solid" ||
-            val === "dashed" ||
-            val === "dotted"
-              ? val
-              : Number(val);
+        btn.addEventListener("click", (e) => {
+          const prop = btn.dataset.prop; const val = btn.dataset.val;
+          currProps[prop] = isNaN(val) || ["transparent", "solid", "dashed", "dotted", "left", "center", "right", "sharp", "round", "none", "bullet", "number"].includes(val) ? val : Number(val);
+
+          // 當切換為項目符號或數字列表時，自動將對齊改為靠左
+          if (prop === "listType" && val !== "none") {
+            currProps.textAlign = "left";
+            updatePropUI("textAlign", "left");
+            if (selectedElementIndex !== -1) window.elements[selectedElementIndex].textAlign = "left";
+          }
+
           updatePropUI(prop, val);
+
+          // 如果正在編輯文字，同步更新輸入框 UI 與內容，並維持焦點
+          if (textInput.style.display === "block") {
+            if (prop === "textAlign") textInput.style.textAlign = val;
+            if (prop === "strokeColor") textInput.style.color = val;
+            if (prop === "listType") {
+              const stripped = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n');
+              const levelCounters = {};
+              textInput.value = stripped.split('\n').map((line) => {
+                const indent = (line.match(/^\s*/) || [""])[0]; const level = indent.length; const clean = line.substring(indent.length);
+                if (val === "none") return line;
+                if (val === "bullet") { const b = ["•", "◦", "▪", "▫"]; return indent + (b[(level / 2) % b.length] || "•") + " " + clean; }
+                levelCounters[level] = (levelCounters[level] || 0) + 1;
+                Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
+                return indent + levelCounters[level] + ". " + clean;
+              }).join('\n');
+            }
+            textInput.focus();
+          }
 
           if (selectedElementIndex !== -1) {
             window.elements[selectedElementIndex][prop] = currProps[prop];
-            render();
-            saveHistory();
+            render(); saveHistory();
           }
         });
       });
@@ -1346,14 +1380,32 @@
         } else if (el.type === "text") {
           const fs = el.fontSize || 24;
           const align = el.textAlign || "center";
+          const listType = el.listType || "none";
           ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
-          const metrics = ctx.measureText(el.text);
-          const w = metrics.width;
-          const h = (fs * 1.2) * el.text.split("\n").length;
-          // 根據對齊方式計算邊界
-          if (align === "center") { minX = el.x - w/2; maxX = el.x + w/2; }
-          else if (align === "right") { minX = el.x - w; maxX = el.x; }
-          else { minX = el.x; maxX = el.x + w; }
+          const lines = el.text.split("\n");
+          let maxWidth = 0;
+          const levelCounters = {}; 
+
+          lines.forEach((line, i) => {
+            const indent = (line.match(/^\s*/) || [""])[0];
+            const level = indent.length;
+            const cleanLine = line.substring(indent.length);
+            let prefix = "";
+            if (listType === "bullet") {
+              const bullets = ["•", "◦", "▪", "▫"];
+              prefix = indent + (bullets[(level / 2) % bullets.length] || "•") + " ";
+            } else if (listType === "number") {
+              levelCounters[level] = (levelCounters[level] || 0) + 1;
+              Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
+              prefix = indent + levelCounters[level] + ". ";
+            } else { prefix = line; }
+            const w = ctx.measureText(prefix + (listType !== "none" ? cleanLine : "")).width;
+            if (w > maxWidth) maxWidth = w;
+          });
+          const h = (fs * 1.2) * lines.length;
+          if (align === "center") { minX = el.x - maxWidth/2; maxX = el.x + maxWidth/2; }
+          else if (align === "right") { minX = el.x - maxWidth; maxX = el.x; }
+          else { minX = el.x; maxX = el.x + maxWidth; }
           minY = el.y; maxY = el.y + h;
         } else {
           minX = Math.min(el.x, el.x + el.w);
@@ -1768,49 +1820,138 @@
         if (shouldSave) saveHistory();
       });
 
-      // 文字工具 (升級支援雙擊編輯與置中對齊)
+      // 文字工具 (支援多層級縮排與自動重新計數)
       function startTextEdit(clientX, clientY, canvasX, canvasY, initialText = "", editingIndex = -1) {
         textInput.style.display = "block";
-        textInput.style.left = clientX + "px";
-        textInput.style.top = (clientY - 12) + "px";
+        textInput.style.left = clientX + "px"; textInput.style.top = (clientY - 12) + "px";
 
         const fs = (editingIndex !== -1) ? (window.elements[editingIndex].fontSize || 24) : currProps.fontSize;
         const align = (editingIndex !== -1) ? (window.elements[editingIndex].textAlign || "center") : currProps.textAlign;
+        const listType = (editingIndex !== -1) ? (window.elements[editingIndex].listType || "none") : currProps.listType;
 
-        textInput.style.fontSize = fs + "px";
-        textInput.style.textAlign = align;
-        textInput.style.width = initialText ? "auto" : "150px";
-        textInput.style.height = initialText ? "auto" : (fs * 1.5) + "px";
-        textInput.style.border = "2px dashed #6965db";
-        textInput.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
-        textInput.placeholder = "請輸入文字...";
-        textInput.value = initialText;
+        textInput.style.fontSize = fs + "px"; textInput.style.textAlign = align;
+        textInput.style.border = "2px dashed #6965db"; textInput.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
+
+        const getDisplayWithPrefixes = (txt) => {
+          if (listType === "none") return txt;
+          const levelCounters = {};
+          return txt.split('\n').map((line, i) => {
+            const indent = (line.match(/^\s*/) || [""])[0];
+            const level = indent.length;
+            const clean = line.substring(indent.length);
+            let prefix = "";
+            if (listType === "bullet") {
+              const bullets = ["•", "◦", "▪", "▫"];
+              prefix = (bullets[(level / 2) % bullets.length] || "•") + " ";
+            } else {
+              levelCounters[level] = (levelCounters[level] || 0) + 1;
+              Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
+              prefix = levelCounters[level] + ". ";
+            }
+            return indent + prefix + clean;
+          }).join('\n');
+        };
+
+        textInput.value = getDisplayWithPrefixes(initialText) || (listType === "bullet" ? "• " : (listType === "number" ? "1. " : ""));
+        
+        textInput.onkeydown = (e) => {
+          const start = textInput.selectionStart;
+          const end = textInput.selectionEnd; // 補回遺失的變數
+          const val = textInput.value;
+          const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+          const currentLine = val.substring(lineStart, val.indexOf('\n', start) === -1 ? val.length : val.indexOf('\n', start));
+
+          if (e.key === "Tab") {
+            e.preventDefault();
+            if (!e.shiftKey) {
+              textInput.value = val.substring(0, lineStart) + "  " + val.substring(lineStart);
+              textInput.selectionStart = textInput.selectionEnd = start + 2;
+            } else {
+              const spacesMatch = currentLine.match(/^\s{1,2}/);
+              if (spacesMatch) {
+                textInput.value = val.substring(0, lineStart) + val.substring(lineStart + spacesMatch[0].length);
+                textInput.selectionStart = textInput.selectionEnd = Math.max(lineStart, start - spacesMatch[0].length);
+              }
+            }
+            const stripped = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n');
+            textInput.value = getDisplayWithPrefixes(stripped);
+            textInput.dispatchEvent(new Event('input'));
+          }
+
+          if (e.key === "Enter") {
+            e.preventDefault();
+            const activeListType = (editingIndex !== -1) ? (window.elements[editingIndex].listType || "none") : currProps.listType;
+            const prefixMatch = currentLine.match(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/);
+            const prefix = prefixMatch ? prefixMatch[0] : "";
+            const content = currentLine.substring(prefix.length).trim();
+
+            if (activeListType !== "none" && content === "" && prefix !== "") {
+              textInput.value = val.substring(0, lineStart) + "\n" + val.substring(end);
+              textInput.selectionStart = textInput.selectionEnd = lineStart + 1;
+            } else {
+              const indent = (currentLine.match(/^\s*/) || [""])[0];
+              const nextBase = val.substring(0, start) + "\n" + indent + val.substring(end);
+              if (activeListType === "none") {
+                textInput.value = nextBase;
+                textInput.selectionStart = textInput.selectionEnd = start + 1 + indent.length;
+              } else {
+                const stripped = nextBase.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n');
+                const levelCounters = {};
+                const final = stripped.split('\n').map((line) => {
+                  const lIndent = (line.match(/^\s*/) || [""])[0];
+                  const level = lIndent.length;
+                  const clean = line.substring(lIndent.length);
+                  let lPrefix = "";
+                  if (activeListType === "bullet") {
+                    const b = ["•", "◦", "▪", "▫"];
+                    lPrefix = (b[(level / 2) % b.length] || "•") + " ";
+                  } else if (activeListType === "number") {
+                    levelCounters[level] = (levelCounters[level] || 0) + 1;
+                    Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
+                    lPrefix = levelCounters[level] + ". ";
+                  }
+                  return lIndent + lPrefix + clean;
+                }).join('\n');
+                textInput.value = final;
+                const newLines = final.split('\n');
+                const lineIdx = val.substring(0, start).split('\n').length;
+                let newPos = 0;
+                for(let i=0; i<lineIdx; i++) newPos += newLines[i].length + 1;
+                const nextFullPrefix = (newLines[lineIdx].match(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/) || [""])[0];
+                textInput.selectionStart = textInput.selectionEnd = newPos + nextFullPrefix.length;
+              }
+            }
+            textInput.dispatchEvent(new Event('input'));
+          }
+        };
 
         setTimeout(() => {
           textInput.focus();
-          if (initialText) {
-            textInput.style.height = textInput.scrollHeight + "px";
-            textInput.style.width = (textInput.scrollWidth + 30) + "px";
-          }
+          textInput.style.height = textInput.scrollHeight + "px";
+          textInput.style.width = (textInput.scrollWidth + 30) + "px";
         }, 10);
 
         textInput.onblur = () => {
           textInput.style.display = "none";
-          const trimmedValue = textInput.value.trim();
+          // 離開編輯時動態確認目前的清單類型
+          const finalListType = (editingIndex !== -1) ? (window.elements[editingIndex].listType || "none") : currProps.listType;
           
+          let finalVal = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n').trim();
           if (editingIndex !== -1) {
-            if (trimmedValue === "") window.elements.splice(editingIndex, 1);
-            else window.elements[editingIndex].text = trimmedValue;
-          } else if (trimmedValue !== "") {
-            window.elements.push({
-              type: "text", text: trimmedValue, x: canvasX, y: canvasY,
-              strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, textAlign: currProps.textAlign
+            if (finalVal === "") window.elements.splice(editingIndex, 1);
+            else {
+              window.elements[editingIndex].text = finalVal;
+              window.elements[editingIndex].listType = finalListType;
+            }
+          } else if (finalVal !== "") {
+            window.elements.push({ 
+              type: "text", text: finalVal, x: canvasX, y: canvasY, 
+              strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, 
+              textAlign: currProps.textAlign, listType: finalListType 
             });
             selectedElementIndex = window.elements.length - 1;
           }
-          render();
-          saveHistory();
-          setTool("select");
+          render(); saveHistory(); setTool("select");
         };
       }
 
@@ -1990,13 +2131,28 @@
           case "text":
             const fs = el.fontSize || 24;
             const align = el.textAlign || "center";
+            const listType = el.listType || "none";
             ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
-            ctx.fillStyle = el.strokeColor || "#1e1e1e";
-            ctx.textBaseline = "top";
-            ctx.textAlign = align; // 套用文字對齊渲染
+            ctx.fillStyle = el.strokeColor || "#1e1e1e"; ctx.textBaseline = "top"; ctx.textAlign = align;
             const lines = el.text.split("\n");
             const lineHeight = fs * 1.2;
-            lines.forEach((line, i) => ctx.fillText(line, el.x, el.y + i * lineHeight));
+            const levelCounters = {}; 
+
+            lines.forEach((line, i) => {
+              const indent = (line.match(/^\s*/) || [""])[0];
+              const level = indent.length;
+              const cleanLine = line.substring(indent.length);
+              let prefix = "";
+              if (listType === "bullet") {
+                const bullets = ["•", "◦", "▪", "▫"];
+                prefix = indent + (bullets[(level / 2) % bullets.length] || "•") + " ";
+              } else if (listType === "number") {
+                levelCounters[level] = (levelCounters[level] || 0) + 1;
+                Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
+                prefix = indent + levelCounters[level] + ". ";
+              } else { prefix = line; }
+              ctx.fillText(prefix + (listType !== "none" ? cleanLine : ""), el.x, el.y + i * lineHeight);
+            });
             break;
           case "image":
             if (el.img) ctx.drawImage(el.img, el.x, el.y, el.w, el.h);
