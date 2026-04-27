@@ -812,6 +812,13 @@
       class="fixed top-20 left-1/2 transform -translate-x-1/2 -translate-y-4 opacity-0 bg-[#1e1e1e] text-white px-6 py-3 rounded-lg shadow-xl transition-all duration-300 pointer-events-none z-50 text-sm font-medium"
     ></div>
 
+    <div id="custom-context-menu" class="fixed hidden bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[120px]">
+      <button id="menu-paste-btn" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm flex items-center gap-2 transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+        貼上
+      </button>
+    </div>
+
     <canvas id="board"></canvas>
     <textarea id="text-input" spellcheck="false"></textarea>
     <input
@@ -2454,13 +2461,37 @@
         { passive: false },
       );
 
-      // 實作平板與觸控裝置的雙指縮放與平移
+      // 實作平板與觸控裝置的雙指縮放與平移、以及長按/右鍵選單
       let initialPinchDistance = null;
       let initialScale = 1;
       let lastPanCenter = null;
+      
+      let longPressTimer = null;
+      let touchStartX = 0;
+      let touchStartY = 0;
+      const contextMenu = document.getElementById("custom-context-menu");
+      let menuPasteLocation = { x: 0, y: 0 };
+
+      // 點擊畫布其他地方時隱藏選單
+      window.addEventListener("pointerdown", (e) => {
+        if (contextMenu && !contextMenu.contains(e.target)) {
+          contextMenu.classList.add("hidden");
+        }
+      });
+
+      // 支援電腦版右鍵叫出選單
+      canvas.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        isDrawing = false;
+        contextMenu.style.left = e.clientX + "px";
+        contextMenu.style.top = e.clientY + "px";
+        contextMenu.classList.remove("hidden");
+        menuPasteLocation = { x: e.clientX, y: e.clientY };
+      });
 
       canvas.addEventListener("touchstart", (e) => {
         if (e.touches.length === 2) {
+          if (longPressTimer) clearTimeout(longPressTimer);
           e.preventDefault(); // 防止瀏覽器預設的畫面縮放或重整
           const t1 = e.touches[0];
           const t2 = e.touches[1];
@@ -2471,17 +2502,41 @@
             y: (t1.clientY + t2.clientY) / 2
           };
           
-          // 雙指操作時強制取消單指的繪圖狀態，避免產生誤觸的線條或圖形
           isDrawing = false;
           if (currentElement && selectedElementIndex === -1) {
             currentElement = null;
             render();
           }
+        } else if (e.touches.length === 1) {
+          // 單指操作：啟動長按計時器 (600ms)
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          
+          longPressTimer = setTimeout(() => {
+            isDrawing = false;
+            // 由於長按觸發，如果已經產生了繪圖點，將其清除
+            if (currentElement && selectedElementIndex === -1) {
+              currentElement = null;
+              render();
+            }
+            contextMenu.style.left = touchStartX + "px";
+            contextMenu.style.top = touchStartY + "px";
+            contextMenu.classList.remove("hidden");
+            menuPasteLocation = { x: touchStartX, y: touchStartY };
+            
+            // 讓手機輕觸回饋 (如果支援)
+            if (navigator.vibrate) navigator.vibrate(50);
+          }, 600);
         }
       }, { passive: false });
 
       canvas.addEventListener("touchmove", (e) => {
-        if (e.touches.length === 2) {
+        if (e.touches.length === 1) {
+           // 若手指移動超過 10px，取消長按
+           if (Math.hypot(e.touches[0].clientX - touchStartX, e.touches[0].clientY - touchStartY) > 10) {
+              if (longPressTimer) clearTimeout(longPressTimer);
+           }
+        } else if (e.touches.length === 2) {
           e.preventDefault();
           const t1 = e.touches[0];
           const t2 = e.touches[1];
@@ -2491,20 +2546,16 @@
             y: (t1.clientY + t2.clientY) / 2
           };
 
-          // 處理平移 (雙指拖曳)
           if (lastPanCenter) {
             offsetX += currentCenter.x - lastPanCenter.x;
             offsetY += currentCenter.y - lastPanCenter.y;
           }
 
-          // 處理縮放
           if (initialPinchDistance) {
             const pinchRatio = currentDistance / initialPinchDistance;
             const nextScale = initialScale * pinchRatio;
 
-            // 限制縮放範圍 (10% ~ 2000%)
             if (nextScale >= 0.1 && nextScale <= 20) {
-              // 縮放時以雙指的中心點為縮放基準心
               offsetX = currentCenter.x - (currentCenter.x - offsetX) * (nextScale / scale);
               offsetY = currentCenter.y - (currentCenter.y - offsetY) * (nextScale / scale);
               scale = nextScale;
@@ -2518,10 +2569,90 @@
       }, { passive: false });
 
       canvas.addEventListener("touchend", (e) => {
+        if (longPressTimer) clearTimeout(longPressTimer);
         if (e.touches.length < 2) {
           initialPinchDistance = null;
           lastPanCenter = null;
         }
+      });
+
+      // 執行選單的貼上功能
+      document.getElementById("menu-paste-btn").addEventListener("click", async () => {
+         contextMenu.classList.add("hidden");
+         try {
+            const items = await navigator.clipboard.read();
+            let hasImage = false;
+            for (let item of items) {
+               const imageTypes = item.types.filter(type => type.startsWith('image/'));
+               if (imageTypes.length > 0) {
+                  const blob = await item.getType(imageTypes[0]);
+                  const reader = new FileReader();
+                  reader.onload = function(event) {
+                     const img = new Image();
+                     img.onload = function() {
+                        let w = img.width, h = img.height;
+                        const maxVisibleW = (canvas.width * 0.7) / scale;
+                        const maxVisibleH = (canvas.height * 0.7) / scale;
+                        if (w > maxVisibleW || h > maxVisibleH) {
+                          const ratio = Math.min(maxVisibleW / w, maxVisibleH / h);
+                          w = w * ratio; h = h * ratio;
+                        }
+                        window.elements.push({
+                          type: "image", img: img, dataUrl: event.target.result,
+                          x: (menuPasteLocation.x - offsetX) / scale - w / 2,
+                          y: (menuPasteLocation.y - offsetY) / scale - h / 2,
+                          w: w, h: h
+                        });
+                        selectedElementIndex = window.elements.length - 1;
+                        setTool("select"); render(); saveHistory(); showToast("已貼上圖片");
+                     };
+                     img.src = event.target.result;
+                  };
+                  reader.readAsDataURL(blob);
+                  hasImage = true;
+                  break;
+               }
+            }
+            if (!hasImage) {
+               // 嘗試讀取文字
+               for (let item of items) {
+                  if (item.types.includes("text/plain")) {
+                     const blob = await item.getType("text/plain");
+                     const text = await blob.text();
+                     if (text && text.trim() !== "") {
+                        window.elements.push({
+                          type: "text", text: text,
+                          x: (menuPasteLocation.x - offsetX) / scale - (text.length * 10) / scale,
+                          y: (menuPasteLocation.y - offsetY) / scale - 12 / scale,
+                          strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, textAlign: currProps.textAlign, listType: currProps.listType || "none"
+                        });
+                        selectedElementIndex = window.elements.length - 1;
+                        setTool("select"); render(); saveHistory(); showToast("已貼上文字");
+                     }
+                     break;
+                  }
+               }
+            }
+         } catch (err) {
+            // 降級方案：若是舊版系統或權限被阻擋，嘗試直接讀取純文字
+            try {
+               const text = await navigator.clipboard.readText();
+               if (text && text.trim() !== "") {
+                  window.elements.push({
+                     type: "text", text: text,
+                     x: (menuPasteLocation.x - offsetX) / scale - (text.length * 10) / scale,
+                     y: (menuPasteLocation.y - offsetY) / scale - 12 / scale,
+                     strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, textAlign: currProps.textAlign, listType: currProps.listType || "none"
+                  });
+                  selectedElementIndex = window.elements.length - 1;
+                  setTool("select"); render(); saveHistory(); showToast("已貼上文字");
+               } else {
+                  showToast("無法讀取剪貼簿，請確認瀏覽器允許貼上權限");
+               }
+            } catch(e) {
+               showToast("無法存取剪貼簿，請在裝置設定中允許網站存取");
+            }
+         }
       });
 
       // 初始 UI 狀態
