@@ -668,6 +668,14 @@
             </button>
           </div>
         </div>
+        <div id="panel-text-align">
+          <label class="text-xs text-gray-700 font-medium mb-2 block">文字對齊 (Align)</label>
+          <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit">
+            <button class="prop-btn w-10" data-prop="textAlign" data-val="left" title="靠左"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg></button>
+            <button class="prop-btn w-10 active" data-prop="textAlign" data-val="center" title="置中"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg></button>
+            <button class="prop-btn w-10" data-prop="textAlign" data-val="right" title="靠右"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg></button>
+          </div>
+        </div>
         <div
           id="panel-layer-controls"
           class="hidden border-t border-gray-100 pt-3"
@@ -903,7 +911,8 @@
         strokeWidth: 2,
         strokeStyle: "solid",
         edges: "sharp",
-        fontSize: 24, // 預設字體大小
+        fontSize: 24, 
+        textAlign: "center", // 預設置中
       };
 
       // 修改字體大小的全局函數
@@ -1015,20 +1024,10 @@
         isDraggingPanel = false;
       });
 
-      // 更新屬性面板的顯示狀態
+      // 更新屬性面板的顯示狀態 (加入對齊選項控制)
       function updatePropertiesPanel() {
-        // 只有當「選擇了繪圖工具」或是「選取了物件」時才顯示，否則預設隱藏
-        const isDrawingTool = [
-          "rectangle",
-          "diamond",
-          "ellipse",
-          "arrow",
-          "line",
-          "pencil",
-          "text",
-        ].includes(currentTool);
-        const hasSelection =
-          selectedElementIndex !== -1 && currentTool === "select";
+        const isDrawingTool = ["rectangle", "diamond", "ellipse", "arrow", "line", "pencil", "text"].includes(currentTool);
+        const hasSelection = selectedElementIndex !== -1 && currentTool === "select";
 
         if (isDrawingTool || hasSelection) {
           propertiesPanel.style.display = "flex";
@@ -1040,31 +1039,26 @@
         const layerControls = document.getElementById("panel-layer-controls");
         const edgesControl = document.getElementById("panel-edges");
         const fontSizeControl = document.getElementById("panel-font-size");
+        const textAlignControl = document.getElementById("panel-text-align");
 
         if (hasSelection) {
           layerControls.style.display = "block";
           const el = window.elements[selectedElementIndex];
           if (el.strokeColor) updatePropUI("strokeColor", el.strokeColor);
-          if (el.backgroundColor)
-            updatePropUI("backgroundColor", el.backgroundColor);
+          if (el.backgroundColor) updatePropUI("backgroundColor", el.backgroundColor);
           if (el.strokeWidth) updatePropUI("strokeWidth", el.strokeWidth);
           if (el.strokeStyle) updatePropUI("strokeStyle", el.strokeStyle);
           if (el.edges) updatePropUI("edges", el.edges);
+          if (el.textAlign) updatePropUI("textAlign", el.textAlign);
 
-          // 同步文字大小顯示
           if (el.type === "text") {
             currProps.fontSize = el.fontSize || 24;
-            document.getElementById("font-size-display").textContent =
-              currProps.fontSize;
+            document.getElementById("font-size-display").textContent = currProps.fontSize;
           }
 
-          // 控制邊緣與字體大小設定的顯示
-          edgesControl.style.display = ["rectangle", "diamond"].includes(
-            el.type,
-          )
-            ? "block"
-            : "none";
+          edgesControl.style.display = ["rectangle", "diamond"].includes(el.type) ? "block" : "none";
           fontSizeControl.style.display = el.type === "text" ? "block" : "none";
+          textAlignControl.style.display = el.type === "text" ? "block" : "none";
         } else {
           layerControls.style.display = "none";
           updatePropUI("strokeColor", currProps.strokeColor);
@@ -1072,16 +1066,12 @@
           updatePropUI("strokeWidth", currProps.strokeWidth);
           updatePropUI("strokeStyle", currProps.strokeStyle);
           updatePropUI("edges", currProps.edges);
-          document.getElementById("font-size-display").textContent =
-            currProps.fontSize;
+          updatePropUI("textAlign", currProps.textAlign);
+          document.getElementById("font-size-display").textContent = currProps.fontSize;
 
-          edgesControl.style.display = ["rectangle", "diamond"].includes(
-            currentTool,
-          )
-            ? "block"
-            : "none";
-          fontSizeControl.style.display =
-            currentTool === "text" ? "block" : "none";
+          edgesControl.style.display = ["rectangle", "diamond"].includes(currentTool) ? "block" : "none";
+          fontSizeControl.style.display = currentTool === "text" ? "block" : "none";
+          textAlignControl.style.display = currentTool === "text" ? "block" : "none";
         }
       }
 
@@ -1355,12 +1345,16 @@
           maxY = Math.max(...el.points.map((p) => p.y));
         } else if (el.type === "text") {
           const fs = el.fontSize || 24;
+          const align = el.textAlign || "center";
           ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
           const metrics = ctx.measureText(el.text);
-          minX = el.x;
-          minY = el.y;
-          maxX = el.x + metrics.width;
-          maxY = el.y + fs * 1.2 * el.text.split("\n").length;
+          const w = metrics.width;
+          const h = (fs * 1.2) * el.text.split("\n").length;
+          // 根據對齊方式計算邊界
+          if (align === "center") { minX = el.x - w/2; maxX = el.x + w/2; }
+          else if (align === "right") { minX = el.x - w; maxX = el.x; }
+          else { minX = el.x; maxX = el.x + w; }
+          minY = el.y; maxY = el.y + h;
         } else {
           minX = Math.min(el.x, el.x + el.w);
           minY = Math.min(el.y, el.y + el.h);
@@ -1774,45 +1768,63 @@
         if (shouldSave) saveHistory();
       });
 
-      // 文字工具
-      function startTextEdit(clientX, clientY, canvasX, canvasY) {
+      // 文字工具 (升級支援雙擊編輯與置中對齊)
+      function startTextEdit(clientX, clientY, canvasX, canvasY, initialText = "", editingIndex = -1) {
         textInput.style.display = "block";
         textInput.style.left = clientX + "px";
-        textInput.style.top = clientY - 12 + "px";
+        textInput.style.top = (clientY - 12) + "px";
 
-        // 強制加上明顯的寬高、底色與提示字，字體大小隨設定變動
-        textInput.style.fontSize = currProps.fontSize + "px";
-        textInput.style.width = "150px";
-        textInput.style.height = currProps.fontSize * 1.5 + "px";
+        const fs = (editingIndex !== -1) ? (window.elements[editingIndex].fontSize || 24) : currProps.fontSize;
+        const align = (editingIndex !== -1) ? (window.elements[editingIndex].textAlign || "center") : currProps.textAlign;
+
+        textInput.style.fontSize = fs + "px";
+        textInput.style.textAlign = align;
+        textInput.style.width = initialText ? "auto" : "150px";
+        textInput.style.height = initialText ? "auto" : (fs * 1.5) + "px";
         textInput.style.border = "2px dashed #6965db";
         textInput.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
         textInput.placeholder = "請輸入文字...";
-        textInput.value = "";
+        textInput.value = initialText;
 
-        // 使用 setTimeout 確保焦點不會被點擊事件的生命週期搶走而瞬間消失
         setTimeout(() => {
           textInput.focus();
+          if (initialText) {
+            textInput.style.height = textInput.scrollHeight + "px";
+            textInput.style.width = (textInput.scrollWidth + 30) + "px";
+          }
         }, 10);
 
         textInput.onblur = () => {
           textInput.style.display = "none";
-          if (textInput.value.trim() !== "") {
+          const trimmedValue = textInput.value.trim();
+          
+          if (editingIndex !== -1) {
+            if (trimmedValue === "") window.elements.splice(editingIndex, 1);
+            else window.elements[editingIndex].text = trimmedValue;
+          } else if (trimmedValue !== "") {
             window.elements.push({
-              // 微調座標，讓打字完後的位置跟畫布上的位置完美重合
-              type: "text",
-              text: textInput.value,
-              x: canvasX + 8,
-              y: canvasY - 4,
-              strokeColor: currProps.strokeColor,
-              fontSize: currProps.fontSize,
+              type: "text", text: trimmedValue, x: canvasX, y: canvasY,
+              strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, textAlign: currProps.textAlign
             });
             selectedElementIndex = window.elements.length - 1;
-            render();
-            saveHistory();
           }
+          render();
+          saveHistory();
           setTool("select");
         };
       }
+
+      // 雙擊畫布偵測文字物件進入編輯模式
+      canvas.addEventListener("dblclick", (e) => {
+        const pos = getMousePos(e);
+        for (let i = window.elements.length - 1; i >= 0; i--) {
+          const el = window.elements[i];
+          if (el.type === "text" && hitTest(pos.x, pos.y, el)) {
+            startTextEdit(e.clientX, e.clientY, el.x, el.y, el.text, i);
+            return;
+          }
+        }
+      });
       textInput.addEventListener("input", function () {
         this.style.height = "auto";
         this.style.height = this.scrollHeight + "px";
@@ -1977,14 +1989,14 @@
             break;
           case "text":
             const fs = el.fontSize || 24;
+            const align = el.textAlign || "center";
             ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
-            ctx.fillStyle = el.strokeColor || "#1e1e1e"; // Text uses strokeColor
+            ctx.fillStyle = el.strokeColor || "#1e1e1e";
             ctx.textBaseline = "top";
+            ctx.textAlign = align; // 套用文字對齊渲染
             const lines = el.text.split("\n");
             const lineHeight = fs * 1.2;
-            lines.forEach((line, i) =>
-              ctx.fillText(line, el.x, el.y + i * lineHeight),
-            );
+            lines.forEach((line, i) => ctx.fillText(line, el.x, el.y + i * lineHeight));
             break;
           case "image":
             if (el.img) ctx.drawImage(el.img, el.x, el.y, el.w, el.h);
