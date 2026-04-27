@@ -1,0 +1,2186 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>老人的白板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap");
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #f8f9fa;
+        font-family: "Noto Sans TC", sans-serif;
+        touch-action: none;
+      }
+      canvas {
+        display: block;
+        cursor: crosshair;
+      }
+      .tool-btn {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        color: #1e1e1e;
+        transition: all 0.2s;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+      }
+      .tool-btn:hover {
+        background-color: #f0f0f0;
+      }
+      .tool-btn.active {
+        background-color: #e0e0ff;
+        color: #4a4a8a;
+      }
+      .shortcut {
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+        font-size: 10px;
+        color: #a0a0a0;
+        pointer-events: none;
+      }
+
+      /* 改良文字輸入框：加上明顯的邊框和底色，讓用戶清楚知道打字位置 */
+      #text-input {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px dashed #6965db;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        outline: none;
+        font-family: "Caveat", "Noto Sans TC", sans-serif;
+        font-size: 24px;
+        line-height: 1.2;
+        padding: 8px;
+        min-width: 150px;
+        min-height: 46px;
+        resize: none;
+        overflow: hidden;
+        white-space: pre;
+        z-index: 10;
+        display: none;
+      }
+      #file-input {
+        display: none;
+      }
+
+      .toast-enter {
+        opacity: 1 !important;
+        transform: translate(-50%, 0) !important;
+      }
+
+      /* 屬性面板專用樣式 */
+      .prop-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+      }
+      .prop-btn:hover {
+        border-color: #d0d0d0;
+        transform: scale(1.05);
+      }
+      .prop-btn.active {
+        border-color: #6965db;
+        box-shadow: 0 0 0 2px #e0e0ff;
+      }
+      .color-circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      .bg-transparent-pattern {
+        background-image:
+          linear-gradient(
+            45deg,
+            #eee 25%,
+            transparent 25%,
+            transparent 75%,
+            #eee 75%,
+            #eee
+          ),
+          linear-gradient(
+            45deg,
+            #eee 25%,
+            transparent 25%,
+            transparent 75%,
+            #eee 75%,
+            #eee
+          );
+        background-size: 8px 8px;
+        background-position:
+          0 0,
+          4px 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 頂部工具列 -->
+    <div
+      class="fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-1 bg-white p-1.5 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 z-20"
+    >
+      <button id="undo-btn" class="tool-btn" title="上一動 (Ctrl+Z)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 7v6h6" />
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+        </svg>
+      </button>
+      <button id="redo-btn" class="tool-btn" title="下一動 (Ctrl+Y)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 7v6h-6" />
+          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
+        </svg>
+      </button>
+      <div class="w-[1px] h-6 bg-gray-200 mx-1"></div>
+      <button class="tool-btn" data-tool="hand" title="拖曳畫布 (空白鍵切換)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+          <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
+          <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+          <path
+            d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"
+          />
+        </svg>
+        <span class="shortcut" style="font-size: 8px">Space</span>
+      </button>
+      <div class="w-[1px] h-6 bg-gray-200 mx-1"></div>
+      <button class="tool-btn active" data-tool="select" title="選取 (Select)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
+          <path d="M13 13l6 6" />
+        </svg>
+        <span class="shortcut">1</span>
+      </button>
+      <button class="tool-btn" data-tool="rectangle" title="矩形 (Rectangle)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect width="18" height="18" x="3" y="3" rx="2" />
+        </svg>
+        <span class="shortcut">2</span>
+      </button>
+      <button class="tool-btn" data-tool="diamond" title="菱形 (Diamond)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z"
+          />
+        </svg>
+        <span class="shortcut">3</span>
+      </button>
+      <button class="tool-btn" data-tool="ellipse" title="橢圓形 (Ellipse)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        <span class="shortcut">4</span>
+      </button>
+      <button class="tool-btn" data-tool="arrow" title="箭頭 (Arrow)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 12h14" />
+          <path d="m12 5 7 7-7 7" />
+        </svg>
+        <span class="shortcut">A</span>
+      </button>
+      <button class="tool-btn" data-tool="line" title="直線 (Line)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="5" x2="19" y1="12" y2="12" />
+        </svg>
+        <span class="shortcut">S</span>
+      </button>
+      <button class="tool-btn" data-tool="pencil" title="畫筆 (Pencil)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+          <path d="m15 5 4 4" />
+        </svg>
+        <span class="shortcut">D</span>
+      </button>
+      <button class="tool-btn" data-tool="laser" title="雷射筆 (Laser pointer)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="M4.93 4.93l1.41 1.41" />
+          <path d="M17.66 17.66l1.41 1.41" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="M4.93 19.07l1.41-1.41" />
+          <path d="M17.66 6.34l1.41-1.41" />
+          <path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" />
+        </svg>
+        <span class="shortcut">F</span>
+      </button>
+      <button class="tool-btn" data-tool="text" title="文字 (Text)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 7V4h16v3" />
+          <path d="M9 20h6" />
+          <path d="M12 4v16" />
+        </svg>
+        <span class="shortcut">T</span>
+      </button>
+      <button class="tool-btn" data-tool="eraser" title="橡皮擦 (Eraser)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="m7 21-4.3-4.3a2 2 0 0 1 0-2.8l9.2-9.2a2 2 0 0 1 2.8 0l4.3 4.3a2 2 0 0 1 0 2.8L9.8 21z"
+          />
+          <path d="M7 21h15" />
+        </svg>
+        <span class="shortcut">0</span>
+      </button>
+      <div class="w-[1px] h-6 bg-gray-200 mx-1"></div>
+      <button
+        id="clear-btn"
+        class="tool-btn text-red-500 hover:bg-red-50"
+        title="清空畫布"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path
+            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 左側屬性面板 -->
+    <div
+      id="properties-panel"
+      class="fixed left-4 top-24 w-52 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 z-20 flex-col hidden select-none"
+    >
+      <div
+        id="panel-drag-handle"
+        class="w-full h-6 bg-gray-50 hover:bg-gray-100 rounded-t-xl cursor-move flex items-center justify-center border-b border-gray-200 transition-colors"
+      >
+        <div class="w-8 h-1 bg-gray-300 rounded-full"></div>
+      </div>
+      <div class="p-4 flex flex-col gap-4">
+        <div>
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >邊框顏色 (Stroke)</label
+          >
+          <div class="flex gap-2" id="panel-stroke-color">
+            <button
+              class="prop-btn active"
+              data-prop="strokeColor"
+              data-val="#1e1e1e"
+            >
+              <div class="color-circle" style="background: #1e1e1e"></div>
+            </button>
+            <button class="prop-btn" data-prop="strokeColor" data-val="#e03131">
+              <div class="color-circle" style="background: #e03131"></div>
+            </button>
+            <button class="prop-btn" data-prop="strokeColor" data-val="#2f9e44">
+              <div class="color-circle" style="background: #2f9e44"></div>
+            </button>
+            <button class="prop-btn" data-prop="strokeColor" data-val="#1971c2">
+              <div class="color-circle" style="background: #1971c2"></div>
+            </button>
+            <button class="prop-btn" data-prop="strokeColor" data-val="#f08c00">
+              <div class="color-circle" style="background: #f08c00"></div>
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >背景顏色 (Background)</label
+          >
+          <div class="flex gap-2" id="panel-bg-color">
+            <button
+              class="prop-btn active"
+              data-prop="backgroundColor"
+              data-val="transparent"
+            >
+              <div class="color-circle bg-transparent-pattern"></div>
+            </button>
+            <button
+              class="prop-btn"
+              data-prop="backgroundColor"
+              data-val="#ffc9c9"
+            >
+              <div class="color-circle" style="background: #ffc9c9"></div>
+            </button>
+            <button
+              class="prop-btn"
+              data-prop="backgroundColor"
+              data-val="#b2f2bb"
+            >
+              <div class="color-circle" style="background: #b2f2bb"></div>
+            </button>
+            <button
+              class="prop-btn"
+              data-prop="backgroundColor"
+              data-val="#a5d8ff"
+            >
+              <div class="color-circle" style="background: #a5d8ff"></div>
+            </button>
+            <button
+              class="prop-btn"
+              data-prop="backgroundColor"
+              data-val="#ffec99"
+            >
+              <div class="color-circle" style="background: #ffec99"></div>
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >線條粗細 (Width)</label
+          >
+          <div
+            class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit"
+            id="panel-stroke-width"
+          >
+            <button
+              class="prop-btn w-10 active"
+              data-prop="strokeWidth"
+              data-val="2"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+            <button class="prop-btn w-10" data-prop="strokeWidth" data-val="4">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="4"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+            <button class="prop-btn w-10" data-prop="strokeWidth" data-val="6">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >線條樣式 (Style)</label
+          >
+          <div
+            class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit"
+            id="panel-stroke-style"
+          >
+            <button
+              class="prop-btn w-10 active"
+              data-prop="strokeStyle"
+              data-val="solid"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-10"
+              data-prop="strokeStyle"
+              data-val="dashed"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-dasharray="6,4"
+                />
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-10"
+              data-prop="strokeStyle"
+              data-val="dotted"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-dasharray="1,5"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="panel-edges">
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >邊緣 (Edges)</label
+          >
+          <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit">
+            <button
+              class="prop-btn w-10 active"
+              data-prop="edges"
+              data-val="sharp"
+              title="銳角"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="4 4 20 4 20 20" />
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-10"
+              data-prop="edges"
+              data-val="round"
+              title="鈍角 (圓角)"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M4 4h12a4 4 0 0 1 4 4v12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="panel-font-size">
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >字體大小 (Font Size)</label
+          >
+          <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit items-center">
+            <button
+              class="prop-btn w-10"
+              onclick="changeFontSize(-4)"
+              title="縮小"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+            <div
+              id="font-size-display"
+              class="w-8 flex items-center justify-center text-xs font-bold text-gray-600"
+            >
+              24
+            </div>
+            <button
+              class="prop-btn w-10"
+              onclick="changeFontSize(4)"
+              title="放大"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          id="panel-layer-controls"
+          class="hidden border-t border-gray-100 pt-3"
+        >
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >圖層順序 (Layers)</label
+          >
+          <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit">
+            <button
+              class="prop-btn w-8 h-8"
+              onclick="layerAction('toBack')"
+              title="移至最底層"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 4v12" />
+                <path d="m8 12 4 4 4-4" />
+                <path d="M4 20h16" />
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-8 h-8"
+              onclick="layerAction('backward')"
+              title="下一層"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 4v16" />
+                <path d="m8 14 4 6 4-6" />
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-8 h-8"
+              onclick="layerAction('forward')"
+              title="上一層"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 20V4" />
+                <path d="m8 10 4-6 4 6" />
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-8 h-8"
+              onclick="layerAction('toFront')"
+              title="移至最頂層"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 20V8" />
+                <path d="m8 12 4-4 4 4" />
+                <path d="M4 4h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 右上角匯出 -->
+    <div class="fixed top-4 right-4 z-20 flex items-center gap-2">
+      <button
+        id="export-btn"
+        class="flex items-center gap-2 bg-[#6965db] hover:bg-[#5b57ce] text-white px-4 py-2 rounded-lg shadow-md transition-colors text-sm font-medium"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" x2="12" y1="15" y2="3" />
+        </svg>
+        匯出圖片
+      </button>
+    </div>
+
+    <!-- 彈出式提示框 (Toast) -->
+    <div
+      id="toast"
+      class="fixed top-20 left-1/2 transform -translate-x-1/2 -translate-y-4 opacity-0 bg-[#1e1e1e] text-white px-6 py-3 rounded-lg shadow-xl transition-all duration-300 pointer-events-none z-50 text-sm font-medium"
+    ></div>
+
+    <canvas id="board"></canvas>
+    <textarea id="text-input" spellcheck="false"></textarea>
+    <input
+      type="file"
+      id="file-input"
+      accept="image/png, image/jpeg, image/gif, image/webp"
+    />
+
+    <script>
+      const canvas = document.getElementById("board");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      const textInput = document.getElementById("text-input");
+      const fileInput = document.getElementById("file-input");
+      const toolBtns = document.querySelectorAll(".tool-btn");
+      const toastEl = document.getElementById("toast");
+      const propertiesPanel = document.getElementById("properties-panel");
+
+      // 核心狀態管理 (從 localStorage 讀取先前存檔，避免重新整理後消失)
+      const savedData = JSON.parse(
+        localStorage.getItem("oldman_board_data") || "{}",
+      );
+      window.elements = savedData.elements || [];
+
+      // 恢復圖片物件 (Base64 -> Image Object)
+      window.elements.forEach((el) => {
+        if (el.type === "image" && el.dataUrl) {
+          const img = new Image();
+          img.onload = () => render();
+          img.src = el.dataUrl;
+          el.img = img;
+        }
+      });
+
+      let currentTool = "select";
+      let isDrawing = false;
+      let isPanning = false;
+      let isSpacePressed = false;
+
+      // 歷史紀錄 (復原/重做)
+      let history = [];
+      let historyStep = -1;
+
+      function saveToLocalStorage() {
+        // 序列化元素以便儲存 (排除不可儲存的 img 實體，保留 dataUrl)
+        const serializedElements = window.elements.map((el) => {
+          if (el.type === "image") {
+            const { img, ...rest } = el;
+            return rest;
+          }
+          return el;
+        });
+        const data = {
+          elements: serializedElements,
+          offsetX: offsetX,
+          offsetY: offsetY,
+          scale: scale,
+        };
+        localStorage.setItem("oldman_board_data", JSON.stringify(data));
+      }
+
+      function saveHistory() {
+        if (historyStep < history.length - 1) {
+          history = history.slice(0, historyStep + 1);
+        }
+        const elementsCopy = window.elements.map((el) => {
+          const copy = { ...el };
+          if (el.points) copy.points = el.points.map((p) => ({ ...p }));
+          return copy;
+        });
+        history.push(elementsCopy);
+        historyStep++;
+        saveToLocalStorage(); // 每次產生歷史記錄時同步存檔
+      }
+
+      function undo() {
+        if (historyStep > 0) {
+          historyStep--;
+          restoreHistory();
+        } else if (historyStep === 0) {
+          historyStep--;
+          window.elements = [];
+          selectedElementIndex = -1;
+          render();
+        }
+      }
+
+      function redo() {
+        if (historyStep < history.length - 1) {
+          historyStep++;
+          restoreHistory();
+        }
+      }
+
+      function restoreHistory() {
+        const stepElements = history[historyStep];
+        window.elements = stepElements.map((el) => {
+          const copy = { ...el };
+          if (el.points) copy.points = el.points.map((p) => ({ ...p }));
+          return copy;
+        });
+        selectedElementIndex = -1;
+        render();
+        updatePropertiesPanel();
+      }
+
+      document.getElementById("undo-btn").addEventListener("click", undo);
+      document.getElementById("redo-btn").addEventListener("click", redo);
+
+      // 當前繪圖屬性 (全域)
+      let currProps = {
+        strokeColor: "#1e1e1e",
+        backgroundColor: "transparent",
+        strokeWidth: 2,
+        strokeStyle: "solid",
+        edges: "sharp",
+        fontSize: 24, // 預設字體大小
+      };
+
+      // 修改字體大小的全局函數
+      window.changeFontSize = function (delta) {
+        currProps.fontSize = Math.max(
+          12,
+          Math.min(120, currProps.fontSize + delta),
+        );
+        document.getElementById("font-size-display").textContent =
+          currProps.fontSize;
+
+        // 如果當前有選取文字，立即套用變更
+        if (
+          selectedElementIndex !== -1 &&
+          window.elements[selectedElementIndex].type === "text"
+        ) {
+          window.elements[selectedElementIndex].fontSize = currProps.fontSize;
+          render();
+          saveHistory();
+        }
+      };
+
+      // 雷射筆狀態
+      let laserTrail = [];
+      let isLaserActive = false;
+
+      function updateLaser() {
+        if (laserTrail.length > 0) {
+          const now = Date.now();
+          laserTrail = laserTrail.filter((p) => now - p.time < 500); // 500ms 漸隱
+          render();
+        }
+        if (isLaserActive || laserTrail.length > 0) {
+          requestAnimationFrame(updateLaser);
+        }
+      }
+
+      // 座標系統 (從存檔恢復視角與縮放)
+      let startX = 0,
+        startY = 0,
+        currentX = 0,
+        currentY = 0;
+      let offsetX = savedData.offsetX || 0;
+      let offsetY = savedData.offsetY || 0;
+      let scale = savedData.scale || 1;
+
+      // 選取與縮放狀態
+      let currentElement = null;
+      let selectedElementIndex = -1;
+      let isDraggingElement = false;
+      let isResizingElement = false;
+      let isRotatingElement = false; // 新增旋轉狀態
+      let dragOffsetX = 0,
+        dragOffsetY = 0;
+      let dragStartX = 0,
+        dragStartY = 0; // 新增拖曳起始座標 (用於 Shift 鎖定)
+      let isConstrainedAxis = null; // 'x' 或 'y'
+
+      /* ========== UI / 工具切換邏輯 ========== */
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        render();
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      function showToast(message) {
+        toastEl.textContent = message;
+        toastEl.classList.add("toast-enter");
+        setTimeout(() => toastEl.classList.remove("toast-enter"), 3000);
+      }
+
+      // 屬性面板拖曳邏輯
+      const dragHandle = document.getElementById("panel-drag-handle");
+      let isDraggingPanel = false;
+      let panelOffsetX = 0,
+        panelOffsetY = 0;
+
+      dragHandle.addEventListener("mousedown", (e) => {
+        isDraggingPanel = true;
+        const rect = propertiesPanel.getBoundingClientRect();
+        panelOffsetX = e.clientX - rect.left;
+        panelOffsetY = e.clientY - rect.top;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!isDraggingPanel) return;
+        let newX = e.clientX - panelOffsetX;
+        let newY = e.clientY - panelOffsetY;
+
+        // 防止面板被拖出視窗外
+        newX = Math.max(
+          0,
+          Math.min(newX, window.innerWidth - propertiesPanel.offsetWidth),
+        );
+        newY = Math.max(
+          0,
+          Math.min(newY, window.innerHeight - propertiesPanel.offsetHeight),
+        );
+
+        propertiesPanel.style.left = newX + "px";
+        propertiesPanel.style.top = newY + "px";
+        propertiesPanel.style.right = "auto";
+        propertiesPanel.style.bottom = "auto";
+      });
+
+      window.addEventListener("mouseup", () => {
+        isDraggingPanel = false;
+      });
+
+      // 更新屬性面板的顯示狀態
+      function updatePropertiesPanel() {
+        // 只有當「選擇了繪圖工具」或是「選取了物件」時才顯示，否則預設隱藏
+        const isDrawingTool = [
+          "rectangle",
+          "diamond",
+          "ellipse",
+          "arrow",
+          "line",
+          "pencil",
+          "text",
+        ].includes(currentTool);
+        const hasSelection =
+          selectedElementIndex !== -1 && currentTool === "select";
+
+        if (isDrawingTool || hasSelection) {
+          propertiesPanel.style.display = "flex";
+        } else {
+          propertiesPanel.style.display = "none";
+          return;
+        }
+
+        const layerControls = document.getElementById("panel-layer-controls");
+        const edgesControl = document.getElementById("panel-edges");
+        const fontSizeControl = document.getElementById("panel-font-size");
+
+        if (hasSelection) {
+          layerControls.style.display = "block";
+          const el = window.elements[selectedElementIndex];
+          if (el.strokeColor) updatePropUI("strokeColor", el.strokeColor);
+          if (el.backgroundColor)
+            updatePropUI("backgroundColor", el.backgroundColor);
+          if (el.strokeWidth) updatePropUI("strokeWidth", el.strokeWidth);
+          if (el.strokeStyle) updatePropUI("strokeStyle", el.strokeStyle);
+          if (el.edges) updatePropUI("edges", el.edges);
+
+          // 同步文字大小顯示
+          if (el.type === "text") {
+            currProps.fontSize = el.fontSize || 24;
+            document.getElementById("font-size-display").textContent =
+              currProps.fontSize;
+          }
+
+          // 控制邊緣與字體大小設定的顯示
+          edgesControl.style.display = ["rectangle", "diamond"].includes(
+            el.type,
+          )
+            ? "block"
+            : "none";
+          fontSizeControl.style.display = el.type === "text" ? "block" : "none";
+        } else {
+          layerControls.style.display = "none";
+          updatePropUI("strokeColor", currProps.strokeColor);
+          updatePropUI("backgroundColor", currProps.backgroundColor);
+          updatePropUI("strokeWidth", currProps.strokeWidth);
+          updatePropUI("strokeStyle", currProps.strokeStyle);
+          updatePropUI("edges", currProps.edges);
+          document.getElementById("font-size-display").textContent =
+            currProps.fontSize;
+
+          edgesControl.style.display = ["rectangle", "diamond"].includes(
+            currentTool,
+          )
+            ? "block"
+            : "none";
+          fontSizeControl.style.display =
+            currentTool === "text" ? "block" : "none";
+        }
+      }
+
+      function updatePropUI(prop, val) {
+        document.querySelectorAll(`[data-prop="${prop}"]`).forEach((btn) => {
+          if (btn.dataset.val === String(val)) btn.classList.add("active");
+          else btn.classList.remove("active");
+        });
+      }
+
+      // 綁定屬性按鈕事件
+      document.querySelectorAll(".prop-btn[data-prop]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const prop = btn.dataset.prop;
+          const val = btn.dataset.val;
+
+          currProps[prop] =
+            isNaN(val) ||
+            val === "transparent" ||
+            val === "solid" ||
+            val === "dashed" ||
+            val === "dotted"
+              ? val
+              : Number(val);
+          updatePropUI(prop, val);
+
+          if (selectedElementIndex !== -1) {
+            window.elements[selectedElementIndex][prop] = currProps[prop];
+            render();
+            saveHistory();
+          }
+        });
+      });
+
+      // 圖層操作
+      window.layerAction = function (action) {
+        if (selectedElementIndex === -1) return;
+        const idx = selectedElementIndex;
+        const el = window.elements[idx];
+
+        if (action === "toBack" && idx > 0) {
+          window.elements.splice(idx, 1);
+          window.elements.unshift(el);
+          selectedElementIndex = 0;
+        } else if (action === "backward" && idx > 0) {
+          window.elements[idx] = window.elements[idx - 1];
+          window.elements[idx - 1] = el;
+          selectedElementIndex = idx - 1;
+        } else if (action === "forward" && idx < window.elements.length - 1) {
+          window.elements[idx] = window.elements[idx + 1];
+          window.elements[idx + 1] = el;
+          selectedElementIndex = idx + 1;
+        } else if (action === "toFront" && idx < window.elements.length - 1) {
+          window.elements.splice(idx, 1);
+          window.elements.push(el);
+          selectedElementIndex = window.elements.length - 1;
+        }
+        render();
+        saveHistory();
+      };
+
+      function setTool(tool) {
+        currentTool = tool;
+        toolBtns.forEach((b) => b.classList.remove("active"));
+        document.querySelector(`[data-tool="${tool}"]`).classList.add("active");
+
+        if (tool === "hand") canvas.style.cursor = "grab";
+        else if (tool === "text") canvas.style.cursor = "text";
+        else if (tool === "select") canvas.style.cursor = "default";
+        else canvas.style.cursor = "crosshair";
+
+        // 指定工具的預設值設定 (畫筆、矩形、菱形、橢圓)
+        if (["pencil", "rectangle", "diamond", "ellipse"].includes(tool)) {
+          currProps.strokeColor = "#e03131"; // 預設紅色
+          updatePropUI("strokeColor", "#e03131");
+
+          if (["rectangle", "diamond", "ellipse"].includes(tool)) {
+            // 2(矩形)、3(菱形)、4(橢圓) 預設為最粗 (6) 與鈍角 (round)
+            currProps.strokeWidth = 6;
+            currProps.edges = "round";
+            updatePropUI("strokeWidth", 6);
+            updatePropUI("edges", "round");
+          } else if (tool === "pencil") {
+            // 畫筆維持中間粗細 (4)
+            currProps.strokeWidth = 4;
+            updatePropUI("strokeWidth", 4);
+          }
+        }
+
+        if (tool !== "select") selectedElementIndex = -1;
+        updatePropertiesPanel();
+        render();
+      }
+
+      toolBtns.forEach((btn) =>
+        btn.addEventListener("click", () => setTool(btn.dataset.tool)),
+      );
+
+      /* ========== 鍵盤與剪貼簿 ========== */
+      window.addEventListener("keydown", (e) => {
+        if (document.activeElement === textInput) return;
+
+        // 復原 (Ctrl+Z / Cmd+Z) 與 重做 (Ctrl+Y / Cmd+Shift+Z)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+          if (e.shiftKey) redo();
+          else undo();
+          e.preventDefault();
+          return;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+          redo();
+          e.preventDefault();
+          return;
+        }
+
+        // 空白鍵：循環切換手形工具
+        if (e.code === "Space") {
+          e.preventDefault(); // 防止網頁往下捲動
+          if (currentTool === "hand") {
+            setTool(window.lastToolBeforeHand || "select");
+          } else {
+            window.lastToolBeforeHand = currentTool;
+            setTool("hand");
+          }
+          return;
+        }
+
+        const keyMap = {
+          1: "select",
+          2: "rectangle",
+          3: "diamond",
+          4: "ellipse",
+          a: "arrow",
+          A: "arrow",
+          s: "line",
+          S: "line",
+          d: "pencil",
+          D: "pencil",
+          t: "text",
+          T: "text",
+          0: "eraser",
+          f: "laser",
+          F: "laser",
+        };
+        if (keyMap[e.key]) setTool(keyMap[e.key]);
+
+        // 線條粗細快速鍵 (Q: 最細, W: 中等, E: 最粗)
+        if (["q", "w", "e", "Q", "W", "E"].includes(e.key)) {
+          let width = 2;
+          if (e.key.toLowerCase() === "w") width = 4;
+          if (e.key.toLowerCase() === "e") width = 6;
+
+          currProps.strokeWidth = width;
+          updatePropUI("strokeWidth", width);
+
+          // 如果當前有選取的圖形，直接修改它的粗細
+          if (selectedElementIndex !== -1) {
+            window.elements[selectedElementIndex].strokeWidth = width;
+            render();
+            saveHistory();
+          }
+          return;
+        }
+
+        if (
+          (e.key === "Delete" || e.key === "Backspace") &&
+          selectedElementIndex !== -1
+        ) {
+          window.elements.splice(selectedElementIndex, 1);
+          selectedElementIndex = -1;
+          render();
+          updatePropertiesPanel();
+          saveHistory();
+        }
+      });
+
+      window.addEventListener("keyup", (e) => {
+        // 空白鍵長按事件已移除，改為 keydown 循環切換
+      });
+
+      window.addEventListener("paste", (e) => {
+        if (document.activeElement === textInput) return;
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        let hasImage = false;
+
+        const viewCenterX = canvas.width / 2 - offsetX;
+        const viewCenterY = canvas.height / 2 - offsetY;
+
+        for (let index in items) {
+          const item = items[index];
+          if (item.kind === "file" && item.type.indexOf("image/") !== -1) {
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              const img = new Image();
+              img.onload = function () {
+                let w = img.width,
+                  h = img.height;
+
+                // 不壓縮原圖畫質，但將「預設顯示尺寸」縮放至符合目前畫布的 80% 以內
+                const maxWidth = canvas.width * 0.8;
+                const maxHeight = canvas.height * 0.8;
+                if (w > maxWidth || h > maxHeight) {
+                  const ratio = Math.min(maxWidth / w, maxHeight / h);
+                  w = w * ratio;
+                  h = h * ratio;
+                }
+
+                window.elements.push({
+                  type: "image",
+                  img: img,
+                  dataUrl: event.target.result,
+                  x: viewCenterX - w / 2,
+                  y: viewCenterY - h / 2,
+                  w: w,
+                  h: h,
+                });
+                // 畫完自動選取，以利直接縮放
+                selectedElementIndex = window.elements.length - 1;
+                setTool("select");
+                saveHistory();
+                showToast("已貼上圖片");
+              };
+              img.src = event.target.result;
+            };
+            reader.readAsDataURL(blob);
+            hasImage = true;
+            e.preventDefault();
+            break;
+          }
+        }
+
+        if (!hasImage) {
+          const text = (e.clipboardData || window.clipboardData).getData(
+            "text",
+          );
+          if (text && text.trim() !== "") {
+            window.elements.push({
+              type: "text",
+              text: text,
+              x: viewCenterX - text.length * 10,
+              y: viewCenterY - 12,
+              strokeColor: currProps.strokeColor,
+              fontSize: currProps.fontSize,
+            });
+            selectedElementIndex = window.elements.length - 1;
+            setTool("select");
+            saveHistory();
+            showToast("已貼上文字");
+            e.preventDefault();
+          }
+        }
+      });
+
+      /* ========== 滑鼠事件與繪圖邏輯 ========== */
+      // 修改座標計算，將畫布偏移與縮放比例考慮進去
+      function getMousePos(e) {
+        return {
+          x: (e.clientX - offsetX) / scale,
+          y: (e.clientY - offsetY) / scale,
+        };
+      }
+
+      function getElementBounds(el) {
+        let minX, minY, maxX, maxY;
+        if (el.type === "pencil" || el.type === "line" || el.type === "arrow") {
+          if (!el.points || el.points.length === 0) return null;
+          minX = Math.min(...el.points.map((p) => p.x));
+          minY = Math.min(...el.points.map((p) => p.y));
+          maxX = Math.max(...el.points.map((p) => p.x));
+          maxY = Math.max(...el.points.map((p) => p.y));
+        } else if (el.type === "text") {
+          const fs = el.fontSize || 24;
+          ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
+          const metrics = ctx.measureText(el.text);
+          minX = el.x;
+          minY = el.y;
+          maxX = el.x + metrics.width;
+          maxY = el.y + fs * 1.2 * el.text.split("\n").length;
+        } else {
+          minX = Math.min(el.x, el.x + el.w);
+          minY = Math.min(el.y, el.y + el.h);
+          maxX = Math.max(el.x, el.x + el.w);
+          maxY = Math.max(el.y, el.y + el.h);
+        }
+        const padding = 5 + (el.strokeWidth || 2);
+        return { minX, minY, maxX, maxY, padding };
+      }
+
+      function hitTest(x, y, element) {
+        const bounds = getElementBounds(element);
+        if (!bounds) return false;
+        let testX = x;
+        let testY = y;
+        // 若元素有旋轉角度，先將滑鼠座標反向旋轉後再做碰撞偵測
+        if (element.angle) {
+          const cx = (bounds.minX + bounds.maxX) / 2;
+          const cy = (bounds.minY + bounds.maxY) / 2;
+          const cosA = Math.cos(-element.angle);
+          const sinA = Math.sin(-element.angle);
+          testX = cx + (x - cx) * cosA - (y - cy) * sinA;
+          testY = cy + (x - cx) * sinA + (y - cy) * cosA;
+        }
+        return (
+          testX >= bounds.minX - bounds.padding &&
+          testX <= bounds.maxX + bounds.padding &&
+          testY >= bounds.minY - bounds.padding &&
+          testY <= bounds.maxY + bounds.padding
+        );
+      }
+
+      function cloneElement(el) {
+        const copy = { ...el };
+        if (el.points) copy.points = el.points.map((p) => ({ ...p }));
+        return copy;
+      }
+
+      canvas.addEventListener("mousedown", (e) => {
+        const pos = getMousePos(e);
+
+        if (isSpacePressed || e.button === 1 || currentTool === "hand") {
+          isPanning = true;
+          startX = e.clientX - offsetX;
+          startY = e.clientY - offsetY;
+          canvas.style.cursor = "grabbing";
+          return;
+        }
+        if (e.button !== 0) return;
+
+        if (currentTool === "select") {
+          if (selectedElementIndex !== -1) {
+            const el = window.elements[selectedElementIndex];
+            const bounds = getElementBounds(el);
+            if (bounds) {
+              let mx = pos.x,
+                my = pos.y;
+              if (el.angle) {
+                const cx = (bounds.minX + bounds.maxX) / 2;
+                const cy = (bounds.minY + bounds.maxY) / 2;
+                const cosA = Math.cos(-el.angle);
+                const sinA = Math.sin(-el.angle);
+                mx = cx + (pos.x - cx) * cosA - (pos.y - cy) * sinA;
+                my = cy + (pos.x - cx) * sinA + (pos.y - cy) * cosA;
+              }
+              const selectPadding = 8 + (el.strokeWidth || 2) / 2;
+
+              // 檢查是否點擊旋轉控制點
+              const rotX = (bounds.minX + bounds.maxX) / 2;
+              const rotY = bounds.minY - selectPadding - 25;
+              if (Math.hypot(mx - rotX, my - rotY) <= 12) {
+                isRotatingElement = true;
+                dragOffsetX = pos.x;
+                dragOffsetY = pos.y;
+                return;
+              }
+
+              // 檢查是否點擊縮放控制點
+              if (
+                ["image", "rectangle", "ellipse", "diamond"].includes(el.type)
+              ) {
+                const hx = bounds.maxX + selectPadding;
+                const hy = bounds.maxY + selectPadding;
+                if (Math.abs(mx - hx) <= 12 && Math.abs(my - hy) <= 12) {
+                  isResizingElement = true;
+                  dragOffsetX = pos.x;
+                  dragOffsetY = pos.y;
+                  return;
+                }
+              }
+            }
+          }
+
+          // 一般圖形選取與複製邏輯
+          selectedElementIndex = -1;
+          for (let i = window.elements.length - 1; i >= 0; i--) {
+            if (hitTest(pos.x, pos.y, window.elements[i])) {
+              // 若按住 Ctrl，則直接複製物件
+              if (e.ctrlKey || e.metaKey) {
+                const cloned = cloneElement(window.elements[i]);
+                window.elements.push(cloned);
+                selectedElementIndex = window.elements.length - 1;
+                saveHistory();
+              } else {
+                selectedElementIndex = i;
+              }
+              isDraggingElement = true;
+              dragOffsetX = pos.x;
+              dragOffsetY = pos.y;
+              dragStartX = pos.x;
+              dragStartY = pos.y; // 記錄起點供 Shift 鎖定使用
+              isConstrainedAxis = null;
+              break;
+            }
+          }
+          updatePropertiesPanel();
+          render();
+        } else if (currentTool === "eraser") {
+          for (let i = window.elements.length - 1; i >= 0; i--) {
+            if (hitTest(pos.x, pos.y, window.elements[i])) {
+              window.elements.splice(i, 1);
+              render();
+              break;
+            }
+          }
+        } else if (currentTool === "text") {
+          if (textInput.style.display === "block") return;
+          startTextEdit(e.clientX, e.clientY, pos.x, pos.y);
+        } else if (currentTool === "image") {
+          fileInput.click();
+          fileInput.dataset.x = pos.x;
+          fileInput.dataset.y = pos.y;
+        } else if (currentTool === "laser") {
+          isLaserActive = true;
+          laserTrail = [{ x: pos.x, y: pos.y, time: Date.now() }];
+          updateLaser(); // 啟動雷射動畫
+        } else {
+          selectedElementIndex = -1; // 開始新繪圖時取消前一個選取，避免畫面殘留選取框
+          updatePropertiesPanel();
+          isDrawing = true;
+          startX = pos.x;
+          startY = pos.y;
+          currentElement = {
+            type: currentTool,
+            x: startX,
+            y: startY,
+            w: 0,
+            h: 0,
+            points: [{ x: startX, y: startY }],
+            strokeColor: currProps.strokeColor,
+            backgroundColor: currProps.backgroundColor,
+            strokeWidth: currProps.strokeWidth,
+            strokeStyle: currProps.strokeStyle,
+            edges: currProps.edges,
+          };
+        }
+      });
+
+      canvas.addEventListener("mousemove", (e) => {
+        const pos = getMousePos(e);
+
+        if (isPanning) {
+          offsetX = e.clientX - startX;
+          offsetY = e.clientY - startY;
+          render();
+          return;
+        }
+
+        if (currentTool === "eraser" && e.buttons === 1) {
+          let deleted = false;
+          for (let i = window.elements.length - 1; i >= 0; i--) {
+            if (hitTest(pos.x, pos.y, window.elements[i])) {
+              window.elements.splice(i, 1);
+              deleted = true;
+            }
+          }
+          if (deleted) {
+            render();
+          }
+          return;
+        }
+
+        // 處理圖形縮放拉動
+        if (isResizingElement && selectedElementIndex !== -1) {
+          const el = window.elements[selectedElementIndex];
+          const dx = pos.x - dragOffsetX;
+          const dy = pos.y - dragOffsetY;
+
+          if (el.type === "image") {
+            // 圖片縮放維持比例
+            const ratio = el.img.width / el.img.height;
+            el.w += dx;
+            if (el.w < 20) el.w = 20; // 最小尺寸保護
+            el.h = el.w / ratio;
+          } else if (["rectangle", "ellipse", "diamond"].includes(el.type)) {
+            // 一般形狀自由縮放
+            el.w += dx;
+            el.h += dy;
+          }
+
+          dragOffsetX = pos.x;
+          dragOffsetY = pos.y;
+          render();
+          return;
+        }
+
+        // 改變鼠標顯示為縮放圖示
+        if (
+          currentTool === "select" &&
+          !isDraggingElement &&
+          !isResizingElement &&
+          !isRotatingElement
+        ) {
+          let cursorSet = false;
+          if (selectedElementIndex !== -1) {
+            const el = window.elements[selectedElementIndex];
+            const bounds = getElementBounds(el);
+            if (bounds) {
+              let mx = pos.x,
+                my = pos.y;
+              if (el.angle) {
+                const cx = (bounds.minX + bounds.maxX) / 2;
+                const cy = (bounds.minY + bounds.maxY) / 2;
+                const cosA = Math.cos(-el.angle);
+                const sinA = Math.sin(-el.angle);
+                mx = cx + (pos.x - cx) * cosA - (pos.y - cy) * sinA;
+                my = cy + (pos.x - cx) * sinA + (pos.y - cy) * cosA;
+              }
+              const selectPadding = 8 + (el.strokeWidth || 2) / 2;
+
+              const rotX = (bounds.minX + bounds.maxX) / 2;
+              const rotY = bounds.minY - selectPadding - 25;
+              if (Math.hypot(mx - rotX, my - rotY) <= 12) {
+                canvas.style.cursor = "grab";
+                cursorSet = true;
+              } else if (
+                ["image", "rectangle", "ellipse", "diamond"].includes(el.type)
+              ) {
+                const hx = bounds.maxX + selectPadding;
+                const hy = bounds.maxY + selectPadding;
+                if (Math.abs(mx - hx) <= 12 && Math.abs(my - hy) <= 12) {
+                  canvas.style.cursor = "nwse-resize";
+                  cursorSet = true;
+                }
+              }
+            }
+          }
+          if (!cursorSet) canvas.style.cursor = "default";
+        }
+
+        // 處理圖形旋轉
+        if (isRotatingElement && selectedElementIndex !== -1) {
+          const el = window.elements[selectedElementIndex];
+          const bounds = getElementBounds(el);
+          if (bounds) {
+            const cx = (bounds.minX + bounds.maxX) / 2;
+            const cy = (bounds.minY + bounds.maxY) / 2;
+            el.angle = Math.atan2(pos.y - cy, pos.x - cx) + Math.PI / 2;
+            render();
+          }
+          return;
+        }
+
+        // 處理圖形移動 (支援 Shift 水平/垂直鎖定)
+        if (isDraggingElement && selectedElementIndex !== -1) {
+          const el = window.elements[selectedElementIndex];
+          let dx = pos.x - dragOffsetX;
+          let dy = pos.y - dragOffsetY;
+
+          if (e.shiftKey) {
+            const totalDx = Math.abs(pos.x - dragStartX);
+            const totalDy = Math.abs(pos.y - dragStartY);
+            if (!isConstrainedAxis) {
+              isConstrainedAxis = totalDx > totalDy ? "x" : "y";
+            }
+            if (isConstrainedAxis === "x") dy = 0;
+            else dx = 0;
+          } else {
+            isConstrainedAxis = null;
+          }
+
+          if (el.points)
+            el.points.forEach((p) => {
+              p.x += dx;
+              p.y += dy;
+            });
+          el.x += dx;
+          el.y += dy;
+
+          dragOffsetX = pos.x;
+          dragOffsetY = pos.y;
+          render();
+          return;
+        }
+
+        if (isLaserActive && currentTool === "laser") {
+          laserTrail.push({ x: pos.x, y: pos.y, time: Date.now() });
+          return;
+        }
+
+        // 處理繪圖預覽
+        if (!isDrawing) return;
+
+        currentElement.w = pos.x - startX;
+        currentElement.h = pos.y - startY;
+        if (currentTool === "pencil") {
+          currentElement.points.push({ x: pos.x, y: pos.y });
+        } else if (currentTool === "line" || currentTool === "arrow") {
+          let targetX = pos.x;
+          let targetY = pos.y;
+
+          // 按住 Shift 鍵時，鎖定為水平或垂直線
+          if (e.shiftKey) {
+            if (Math.abs(pos.x - startX) > Math.abs(pos.y - startY)) {
+              targetY = startY; // 水平移動較大，鎖定 Y 軸畫水平線
+            } else {
+              targetX = startX; // 垂直移動較大，鎖定 X 軸畫垂直線
+            }
+          }
+          currentElement.points = [
+            { x: startX, y: startY },
+            { x: targetX, y: targetY },
+          ];
+        }
+
+        render();
+      });
+
+      canvas.addEventListener("mouseup", (e) => {
+        if (isPanning) {
+          isPanning = false;
+          saveToLocalStorage(); // 紀錄平移後的座標
+          if (!isSpacePressed) setTool(currentTool);
+          return;
+        }
+
+        let shouldSave = false;
+
+        if (isDraggingElement) {
+          isDraggingElement = false;
+          shouldSave = true;
+        }
+
+        if (isRotatingElement) {
+          isRotatingElement = false;
+          shouldSave = true;
+        }
+
+        if (isLaserActive) {
+          isLaserActive = false;
+        }
+
+        if (currentTool === "eraser") {
+          shouldSave = true; // 橡皮擦可能在移動時刪除元素，統一在滑鼠放開時紀錄歷史
+        }
+
+        // 縮放結束時，確保寬高正規化 (防反轉時出現的負數)
+        if (isResizingElement) {
+          isResizingElement = false;
+          if (selectedElementIndex !== -1) {
+            const el = window.elements[selectedElementIndex];
+            if (el.w < 0) {
+              el.x += el.w;
+              el.w = Math.abs(el.w);
+            }
+            if (el.h < 0) {
+              el.y += el.h;
+              el.h = Math.abs(el.h);
+            }
+          }
+          shouldSave = true;
+        }
+
+        if (isDrawing) {
+          isDrawing = false;
+          let added = false;
+          if (
+            (currentTool === "pencil" && currentElement.points.length > 1) ||
+            (currentTool !== "pencil" &&
+              (Math.abs(currentElement.w) > 2 ||
+                Math.abs(currentElement.h) > 2))
+          ) {
+            // 繪製結束後防反向數值
+            if (["rectangle", "ellipse", "diamond"].includes(currentTool)) {
+              if (currentElement.w < 0) {
+                currentElement.x += currentElement.w;
+                currentElement.w = Math.abs(currentElement.w);
+              }
+              if (currentElement.h < 0) {
+                currentElement.y += currentElement.h;
+                currentElement.h = Math.abs(currentElement.h);
+              }
+            }
+
+            window.elements.push(currentElement);
+            added = true;
+            shouldSave = true;
+          }
+          currentElement = null;
+
+          // 畫完圖形自動變成選取狀態，讓用戶可以直接點面板改顏色粗細，但不自動切換回選取工具，以便連續作圖
+          if (added) {
+            selectedElementIndex = window.elements.length - 1;
+            render();
+            updatePropertiesPanel();
+          } else {
+            render();
+          }
+        }
+
+        if (shouldSave) saveHistory();
+      });
+
+      // 文字工具
+      function startTextEdit(clientX, clientY, canvasX, canvasY) {
+        textInput.style.display = "block";
+        textInput.style.left = clientX + "px";
+        textInput.style.top = clientY - 12 + "px";
+
+        // 強制加上明顯的寬高、底色與提示字，字體大小隨設定變動
+        textInput.style.fontSize = currProps.fontSize + "px";
+        textInput.style.width = "150px";
+        textInput.style.height = currProps.fontSize * 1.5 + "px";
+        textInput.style.border = "2px dashed #6965db";
+        textInput.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
+        textInput.placeholder = "請輸入文字...";
+        textInput.value = "";
+
+        // 使用 setTimeout 確保焦點不會被點擊事件的生命週期搶走而瞬間消失
+        setTimeout(() => {
+          textInput.focus();
+        }, 10);
+
+        textInput.onblur = () => {
+          textInput.style.display = "none";
+          if (textInput.value.trim() !== "") {
+            window.elements.push({
+              // 微調座標，讓打字完後的位置跟畫布上的位置完美重合
+              type: "text",
+              text: textInput.value,
+              x: canvasX + 8,
+              y: canvasY - 4,
+              strokeColor: currProps.strokeColor,
+              fontSize: currProps.fontSize,
+            });
+            selectedElementIndex = window.elements.length - 1;
+            render();
+            saveHistory();
+          }
+          setTool("select");
+        };
+      }
+      textInput.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = this.scrollHeight + "px";
+        this.style.width = "auto";
+        this.style.width = this.scrollWidth + 30 + "px";
+      });
+
+      // 圖片上傳 (維持無壓縮邏輯)
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const img = new Image();
+          img.onload = function () {
+            let w = img.width,
+              h = img.height;
+            window.elements.push({
+              type: "image",
+              img: img,
+              dataUrl: event.target.result,
+              x: parseFloat(fileInput.dataset.x) - w / 2,
+              y: parseFloat(fileInput.dataset.y) - h / 2,
+              w: w,
+              h: h,
+            });
+            selectedElementIndex = window.elements.length - 1;
+            render();
+            setTool("select");
+            saveHistory();
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+        fileInput.value = "";
+      });
+
+      /* ========== 畫布渲染邏輯 ========== */
+      function applyStyles(ctx, el) {
+        ctx.strokeStyle = el.strokeColor || "#1e1e1e";
+        ctx.fillStyle = el.backgroundColor || "transparent";
+        ctx.lineWidth = el.strokeWidth || 2;
+
+        if (el.strokeStyle === "dashed") ctx.setLineDash([10, 10]);
+        else if (el.strokeStyle === "dotted") ctx.setLineDash([2, 6]);
+        else ctx.setLineDash([]); // solid default
+      }
+
+      function fillAndStroke(ctx, el) {
+        if (el.backgroundColor && el.backgroundColor !== "transparent")
+          ctx.fill();
+        ctx.stroke();
+      }
+
+      function drawElement(ctx, el) {
+        ctx.save();
+        if (el.angle) {
+          const bounds = getElementBounds(el);
+          if (bounds) {
+            const cx = (bounds.minX + bounds.maxX) / 2;
+            const cy = (bounds.minY + bounds.maxY) / 2;
+            ctx.translate(cx, cy);
+            ctx.rotate(el.angle);
+            ctx.translate(-cx, -cy);
+          }
+        }
+        ctx.beginPath();
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        applyStyles(ctx, el);
+
+        switch (el.type) {
+          case "rectangle":
+            if (el.edges === "round") {
+              const r = Math.min(16, Math.abs(el.w) / 2, Math.abs(el.h) / 2);
+              ctx.roundRect(el.x, el.y, el.w, el.h, r);
+            } else {
+              ctx.rect(el.x, el.y, el.w, el.h);
+            }
+            fillAndStroke(ctx, el);
+            break;
+          case "diamond":
+            const cx = el.x + el.w / 2,
+              cy = el.y + el.h / 2;
+            if (el.edges === "round") {
+              ctx.beginPath();
+              const radius = Math.min(
+                16,
+                Math.abs(el.w) / 4,
+                Math.abs(el.h) / 4,
+              );
+              ctx.moveTo(cx, el.y);
+              ctx.arcTo(el.x + el.w, cy, cx, el.y + el.h, radius);
+              ctx.arcTo(cx, el.y + el.h, el.x, cy, radius);
+              ctx.arcTo(el.x, cy, cx, el.y, radius);
+              ctx.arcTo(cx, el.y, el.x + el.w, cy, radius);
+              ctx.closePath();
+            } else {
+              ctx.moveTo(cx, el.y);
+              ctx.lineTo(el.x + el.w, cy);
+              ctx.lineTo(cx, el.y + el.h);
+              ctx.lineTo(el.x, cy);
+              ctx.closePath();
+            }
+            fillAndStroke(ctx, el);
+            break;
+          case "ellipse":
+            ctx.ellipse(
+              el.x + el.w / 2,
+              el.y + el.h / 2,
+              Math.abs(el.w / 2),
+              Math.abs(el.h / 2),
+              0,
+              0,
+              2 * Math.PI,
+            );
+            fillAndStroke(ctx, el);
+            break;
+          case "line":
+          case "arrow":
+            if (el.points && el.points.length === 2) {
+              const p1 = el.points[0],
+                p2 = el.points[1];
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+              if (el.type === "arrow") {
+                const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x),
+                  headlen = 15;
+                ctx.beginPath();
+                ctx.moveTo(p2.x, p2.y);
+                ctx.lineTo(
+                  p2.x - headlen * Math.cos(angle - Math.PI / 6),
+                  p2.y - headlen * Math.sin(angle - Math.PI / 6),
+                );
+                ctx.moveTo(p2.x, p2.y);
+                ctx.lineTo(
+                  p2.x - headlen * Math.cos(angle + Math.PI / 6),
+                  p2.y - headlen * Math.sin(angle + Math.PI / 6),
+                );
+                ctx.stroke();
+              }
+            }
+            break;
+          case "pencil":
+            ctx.fillStyle = "transparent"; // Pencil is line only
+            if (el.points && el.points.length > 0) {
+              ctx.moveTo(el.points[0].x, el.points[0].y);
+              for (let i = 1; i < el.points.length; i++) {
+                const p0 = el.points[i - 1],
+                  p1 = el.points[i],
+                  midPoint = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+                ctx.quadraticCurveTo(p0.x, p0.y, midPoint.x, midPoint.y);
+              }
+              ctx.lineTo(
+                el.points[el.points.length - 1].x,
+                el.points[el.points.length - 1].y,
+              );
+              ctx.stroke();
+            }
+            break;
+          case "text":
+            const fs = el.fontSize || 24;
+            ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
+            ctx.fillStyle = el.strokeColor || "#1e1e1e"; // Text uses strokeColor
+            ctx.textBaseline = "top";
+            const lines = el.text.split("\n");
+            const lineHeight = fs * 1.2;
+            lines.forEach((line, i) =>
+              ctx.fillText(line, el.x, el.y + i * lineHeight),
+            );
+            break;
+          case "image":
+            if (el.img) ctx.drawImage(el.img, el.x, el.y, el.w, el.h);
+            break;
+        }
+        ctx.restore();
+      }
+
+      function drawGrid(ctx, width, height) {
+        ctx.save();
+        ctx.strokeStyle = "#e9ecef";
+        ctx.lineWidth = 1;
+        // 讓網格線的大小隨縮放比例調整
+        const scaledGridSize = 20 * scale;
+        const startX = offsetX % scaledGridSize;
+        const startY = offsetY % scaledGridSize;
+
+        ctx.beginPath();
+        for (
+          let x = startX - scaledGridSize;
+          x < width + scaledGridSize;
+          x += scaledGridSize
+        ) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+        }
+        for (
+          let y = startY - scaledGridSize;
+          y < height + scaledGridSize;
+          y += scaledGridSize
+        ) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+      function drawSelectionBox(ctx, el) {
+        const bounds = getElementBounds(el);
+        if (!bounds) return;
+        const { minX, minY, maxX, maxY } = bounds;
+        const selectPadding = 8 + (el.strokeWidth || 2) / 2;
+
+        ctx.save();
+        if (el.angle) {
+          const cx = (bounds.minX + bounds.maxX) / 2;
+          const cy = (bounds.minY + bounds.maxY) / 2;
+          ctx.translate(cx, cy);
+          ctx.rotate(el.angle);
+          ctx.translate(-cx, -cy);
+        }
+
+        ctx.strokeStyle = "#6965db";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(
+          minX - selectPadding,
+          minY - selectPadding,
+          maxX - minX + selectPadding * 2,
+          maxY - minY + selectPadding * 2,
+        );
+
+        // 繪製右下角的「縮放控制點」
+        if (["image", "rectangle", "ellipse", "diamond"].includes(el.type)) {
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#6965db";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([]);
+          const hSize = 10;
+          const hx = maxX + selectPadding - hSize / 2;
+          const hy = maxY + selectPadding - hSize / 2;
+          ctx.fillRect(hx, hy, hSize, hSize);
+          ctx.strokeRect(hx, hy, hSize, hSize);
+        }
+
+        // 繪製頂部的「旋轉控制點」
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#6965db";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([]);
+        const rotX = (minX + maxX) / 2;
+        const rotY = minY - selectPadding - 25;
+        ctx.beginPath();
+        ctx.moveTo(rotX, minY - selectPadding);
+        ctx.lineTo(rotX, rotY + 5);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(rotX, rotY, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function render() {
+        ctx.fillStyle = "#f8f9fa";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawGrid(ctx, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(offsetX, offsetY);
+        ctx.scale(scale, scale); // 套用繪圖內容的縮放
+
+        window.elements.forEach((el, index) => {
+          drawElement(ctx, el);
+          if (index === selectedElementIndex) drawSelectionBox(ctx, el);
+        });
+        if (isDrawing && currentElement) drawElement(ctx, currentElement);
+
+        // 繪製雷射筆軌跡
+        if (laserTrail.length > 1) {
+          const now = Date.now();
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          for (let i = 1; i < laserTrail.length; i++) {
+            const p0 = laserTrail[i - 1];
+            const p1 = laserTrail[i];
+            const age = now - p1.time;
+            if (age > 500) continue;
+
+            const opacity = 1 - age / 500;
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.strokeStyle = `rgba(255, 0, 0, ${opacity})`;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+        ctx.restore();
+      }
+
+      // 清空畫布按鈕
+      document.getElementById("clear-btn").addEventListener("click", () => {
+        window.elements = [];
+        selectedElementIndex = -1;
+        render();
+        saveHistory();
+        updatePropertiesPanel();
+        showToast("已清空畫布");
+      });
+
+      // 匯出按鈕
+      document.getElementById("export-btn").addEventListener("click", () => {
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tCtx = tempCanvas.getContext("2d");
+        tCtx.fillStyle = "#ffffff";
+        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tCtx.save();
+        tCtx.translate(offsetX, offsetY);
+        window.elements.forEach((el) => drawElement(tCtx, el));
+        tCtx.restore();
+        const link = document.createElement("a");
+        link.download = `老人的白板-${new Date().getTime()}.png`;
+        link.href = tempCanvas.toDataURL("image/png");
+        link.click();
+      });
+
+      // 實作 Mac 用戶按住 Command (metaKey) 的滑鼠滾輪縮放，以及一般的滾輪平移
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            const delta = -e.deltaY;
+            const zoomFactor = Math.pow(1.1, delta / 100);
+            const nextScale = scale * zoomFactor;
+
+            // 限制縮放範圍 (10% ~ 2000%)
+            if (nextScale < 0.1 || nextScale > 20) return;
+
+            // 以目前滑鼠位置為中心點進行縮放的計算公式
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            offsetX = mouseX - (mouseX - offsetX) * (nextScale / scale);
+            offsetY = mouseY - (mouseY - offsetY) * (nextScale / scale);
+            scale = nextScale;
+            render();
+            saveToLocalStorage();
+          } else {
+            // 沒有按住 Command 時，執行平移 (如 Word 上下捲動)
+            offsetX -= e.deltaX;
+            offsetY -= e.deltaY;
+            render();
+            saveToLocalStorage();
+          }
+        },
+        { passive: false },
+      );
+
+      // 初始 UI 狀態
+      updatePropertiesPanel();
+    </script>
+  </body>
+</html>
