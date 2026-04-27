@@ -339,24 +339,26 @@
         </svg>
         <span class="shortcut">T</span>
       </button>
-      <button class="tool-btn" data-tool="eraser" title="橡皮擦 (Eraser)">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="m7 21-4.3-4.3a2 2 0 0 1 0-2.8l9.2-9.2a2 2 0 0 1 2.8 0l4.3 4.3a2 2 0 0 1 0 2.8L9.8 21z"
-          />
-          <path d="M7 21h15" />
+      <button class="tool-btn" data-tool="lasso" title="套索 (Lasso)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9.6 20H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6.5"></path>
+          <path d="M12 14c-1.5 0-2.5 1-2.5 2.5S10.5 19 12 19s2.5-1 2.5-2.5-1-2.5-2.5-2.5z"></path>
+          <path d="M14 16.5L19 22"></path>
         </svg>
-        <span class="shortcut">0</span>
+        <span class="shortcut">L</span>
       </button>
+      <button class="tool-btn" data-tool="highlighter" title="螢光筆 (Highlighter)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 11 6 6"/>
+          <path d="M12 7h.01"/>
+          <path d="M16 11h.01"/>
+          <path d="M11 22h10"/>
+          <path d="m18 2-5 4"/>
+          <path d="M7 18a2 2 0 0 1-2-2c0-2 4-6 4-6s4 4 4 6a2 2 0 0 1-2 2z"/>
+        </svg>
+        <span class="shortcut">H</span>
+      </button>
+      
       <div class="w-[1px] h-6 bg-gray-200 mx-1"></div>
       <button
         id="clear-btn"
@@ -378,6 +380,24 @@
             d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
           ></path>
         </svg>
+      </button>
+      <button class="tool-btn text-blue-500 hover:bg-blue-50" data-tool="eraser" title="橡皮擦 (E)">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="m7 21-4.3-4.3a2 2 0 0 1 0-2.8l9.2-9.2a2 2 0 0 1 2.8 0l4.3 4.3a2 2 0 0 1 0 2.8L9.8 21z"
+          />
+          <path d="M7 21h15" />
+        </svg>
+        <span class="shortcut">E</span>
       </button>
     </div>
 
@@ -510,6 +530,30 @@
                   stroke-width="6"
                   stroke-linecap="round"
                 />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="hidden gap-2 bg-gray-50 rounded-lg p-1 w-fit"
+            id="panel-highlighter-width"
+          >
+            <button
+              class="prop-btn w-10 active"
+              data-prop="strokeWidth"
+              data-val="12"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="6" stroke-linecap="square" stroke-opacity="0.4" />
+              </svg>
+            </button>
+            <button class="prop-btn w-10" data-prop="strokeWidth" data-val="24">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="12" stroke-linecap="square" stroke-opacity="0.4" />
+              </svg>
+            </button>
+            <button class="prop-btn w-10" data-prop="strokeWidth" data-val="36">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="18" stroke-linecap="square" stroke-opacity="0.4" />
               </svg>
             </button>
           </div>
@@ -774,8 +818,8 @@
         </div>
       </div>
     </div>
-    <!-- 右上角匯出 -->
-    <div id="export-panel" class="fixed top-4 right-4 z-20 flex items-center bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 select-none">
+    <!-- 右下角匯出 (原本在右上) -->
+    <div id="export-panel" class="fixed bottom-4 right-4 z-20 flex items-center bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 select-none">
       <div id="export-drag-handle" class="w-6 h-full flex flex-col items-center justify-center cursor-move hover:bg-gray-100 rounded-l-xl border-r border-gray-200 py-3 transition-colors" title="拖曳移動">
         <div class="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
         <div class="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
@@ -837,9 +881,9 @@
       const toastEl = document.getElementById("toast");
       const propertiesPanel = document.getElementById("properties-panel");
 
-      // 核心狀態管理 (從 localStorage 讀取先前存檔，避免重新整理後消失)
+      // 核心狀態管理 (從 localStorage 讀取先前存檔)
       const savedData = JSON.parse(
-        localStorage.getItem("oldman_board_data") || "{}",
+        localStorage.getItem("oldman_board_data") || "{}"
       );
       window.elements = savedData.elements || [];
 
@@ -863,21 +907,25 @@
       let historyStep = -1;
 
       function saveToLocalStorage() {
-        // 序列化元素以便儲存 (排除不可儲存的 img 實體，保留 dataUrl)
-        const serializedElements = window.elements.map((el) => {
-          if (el.type === "image") {
-            const { img, ...rest } = el;
-            return rest;
-          }
-          return el;
-        });
-        const data = {
-          elements: serializedElements,
-          offsetX: offsetX,
-          offsetY: offsetY,
-          scale: scale,
-        };
-        localStorage.setItem("oldman_board_data", JSON.stringify(data));
+        try {
+          // 序列化元素以便儲存 (排除不可儲存的 img 實體，保留 dataUrl)
+          const serializedElements = window.elements.map((el) => {
+            if (el.type === "image") {
+              const { img, ...rest } = el;
+              return rest;
+            }
+            return el;
+          });
+          const data = {
+            elements: serializedElements,
+            offsetX: offsetX,
+            offsetY: offsetY,
+            scale: scale,
+          };
+          localStorage.setItem("oldman_board_data", JSON.stringify(data));
+        } catch (e) {
+          console.warn("本地存檔空間已滿，略過本地備份", e);
+        }
       }
 
       function saveHistory() {
@@ -889,9 +937,16 @@
           if (el.points) copy.points = el.points.map((p) => ({ ...p }));
           return copy;
         });
+        
+        // 限制歷史紀錄最多 30 步，避免寫字產生海量紀錄導致記憶體耗盡當機
+        if (history.length > 30) {
+          history.shift();
+        } else {
+          historyStep++;
+        }
         history.push(elementsCopy);
-        historyStep++;
-        saveToLocalStorage(); // 每次產生歷史記錄時同步存檔
+        
+        saveToLocalStorage();
       }
 
       function undo() {
@@ -937,12 +992,25 @@
         edges: "sharp",
         fontSize: 24, 
         textAlign: "center", 
-        listType: "none", // 項目符號預設為無
+        listType: "none", 
+      };
+
+      // 記憶各個工具最後選擇的屬性
+      const toolPropsMemory = {
+        pencil: { strokeColor: "#e03131", strokeWidth: 4, strokeStyle: "solid", backgroundColor: "transparent" },
+        highlighter: { strokeColor: "#f08c00", strokeWidth: 24, strokeStyle: "solid", backgroundColor: "transparent" },
+        rectangle: { strokeColor: "#e03131", strokeWidth: 6, strokeStyle: "solid", edges: "round", backgroundColor: "transparent" },
+        diamond: { strokeColor: "#e03131", strokeWidth: 6, strokeStyle: "solid", edges: "round", backgroundColor: "transparent" },
+        ellipse: { strokeColor: "#e03131", strokeWidth: 6, strokeStyle: "solid", edges: "round", backgroundColor: "transparent" },
+        arrow: { strokeColor: "#1e1e1e", strokeWidth: 2, strokeStyle: "solid" },
+        line: { strokeColor: "#1e1e1e", strokeWidth: 2, strokeStyle: "solid" },
+        text: { strokeColor: "#1e1e1e", fontSize: 24, textAlign: "center", listType: "none" }
       };
 
       // 修改字體大小的全局函數 (同步更新編輯中狀態)
       window.changeFontSize = function (delta) {
         currProps.fontSize = Math.max(12, Math.min(120, currProps.fontSize + delta));
+        if (toolPropsMemory["text"]) toolPropsMemory["text"].fontSize = currProps.fontSize;
         document.getElementById("font-size-display").textContent = currProps.fontSize;
 
         // 如果正在編輯文字，即時縮放輸入框
@@ -965,7 +1033,7 @@
       function updateLaser() {
         if (laserTrail.length > 0) {
           const now = Date.now();
-          laserTrail = laserTrail.filter((p) => now - p.time < 500); // 500ms 漸隱
+          laserTrail = laserTrail.filter((p) => now - p.time < 500); 
           render();
         }
         if (isLaserActive || laserTrail.length > 0) {
@@ -987,12 +1055,15 @@
       let selectedElementIndex = -1;
       let isDraggingElement = false;
       let isResizingElement = false;
-      let isRotatingElement = false; // 新增旋轉狀態
+      let isRotatingElement = false; 
       let dragOffsetX = 0,
         dragOffsetY = 0;
       let dragStartX = 0,
-        dragStartY = 0; // 新增拖曳起始座標 (用於 Shift 鎖定)
-      let isConstrainedAxis = null; // 'x' 或 'y'
+        dragStartY = 0; 
+      let isConstrainedAxis = null; 
+      let lassoPath = [];
+      let selectedGroup = []; // 存放被套索選取的物件 index
+      let isDraggingGroup = false;
 
       /* ========== UI / 工具切換邏輯 ========== */
       function resizeCanvas() {
@@ -1054,7 +1125,7 @@
 
       // 更新屬性面板的顯示狀態 (支援對齊與列表控制)
       function updatePropertiesPanel() {
-        const isDrawingTool = ["rectangle", "diamond", "ellipse", "arrow", "line", "pencil", "text"].includes(currentTool);
+        const isDrawingTool = ["rectangle", "diamond", "ellipse", "arrow", "line", "pencil", "highlighter", "text"].includes(currentTool);
         const hasSelection = selectedElementIndex !== -1 && currentTool === "select";
 
         if (isDrawingTool || hasSelection) {
@@ -1068,7 +1139,20 @@
         const edgesControl = document.getElementById("panel-edges");
         const fontSizeControl = document.getElementById("panel-font-size");
         const textAlignControl = document.getElementById("panel-text-align");
-        const listTypeControl = document.getElementById("panel-list-type"); // 加入列表控制項
+        const listTypeControl = document.getElementById("panel-list-type");
+        const normalWidthControl = document.getElementById("panel-stroke-width");
+        const hlWidthControl = document.getElementById("panel-highlighter-width");
+
+        let activeTool = currentTool;
+        if (hasSelection) activeTool = window.elements[selectedElementIndex].type;
+
+        if (activeTool === "highlighter") {
+          if (normalWidthControl) normalWidthControl.style.display = "none";
+          if (hlWidthControl) hlWidthControl.style.display = "flex";
+        } else {
+          if (normalWidthControl) normalWidthControl.style.display = "flex";
+          if (hlWidthControl) hlWidthControl.style.display = "none";
+        }
 
         if (hasSelection) {
           layerControls.style.display = "block";
@@ -1079,7 +1163,7 @@
           if (el.strokeStyle) updatePropUI("strokeStyle", el.strokeStyle);
           if (el.edges) updatePropUI("edges", el.edges);
           if (el.textAlign) updatePropUI("textAlign", el.textAlign);
-          if (el.listType) updatePropUI("listType", el.listType); // 同步列表類型 UI
+          if (el.listType) updatePropUI("listType", el.listType); 
 
           if (el.type === "text") {
             currProps.fontSize = el.fontSize || 24;
@@ -1089,7 +1173,7 @@
           edgesControl.style.display = ["rectangle", "diamond"].includes(el.type) ? "block" : "none";
           fontSizeControl.style.display = el.type === "text" ? "block" : "none";
           textAlignControl.style.display = el.type === "text" ? "block" : "none";
-          listTypeControl.style.display = el.type === "text" ? "block" : "none"; // 文字工具才顯示列表設定
+          listTypeControl.style.display = el.type === "text" ? "block" : "none"; 
         } else {
           layerControls.style.display = "none";
           updatePropUI("strokeColor", currProps.strokeColor);
@@ -1098,13 +1182,13 @@
           updatePropUI("strokeStyle", currProps.strokeStyle);
           updatePropUI("edges", currProps.edges);
           updatePropUI("textAlign", currProps.textAlign);
-          updatePropUI("listType", currProps.listType); // 同步列表類型 UI
+          updatePropUI("listType", currProps.listType); 
           document.getElementById("font-size-display").textContent = currProps.fontSize;
 
           edgesControl.style.display = ["rectangle", "diamond"].includes(currentTool) ? "block" : "none";
           fontSizeControl.style.display = currentTool === "text" ? "block" : "none";
           textAlignControl.style.display = currentTool === "text" ? "block" : "none";
-          listTypeControl.style.display = currentTool === "text" ? "block" : "none"; // 文字工具才顯示列表設定
+          listTypeControl.style.display = currentTool === "text" ? "block" : "none"; 
         }
       }
 
@@ -1131,6 +1215,14 @@
             currProps.textAlign = "left";
             updatePropUI("textAlign", "left");
             if (selectedElementIndex !== -1) window.elements[selectedElementIndex].textAlign = "left";
+          }
+
+          // 記憶目前工具的屬性設定
+          if (toolPropsMemory[currentTool]) {
+            toolPropsMemory[currentTool][prop] = currProps[prop];
+            if (prop === "listType" && val !== "none") {
+              toolPropsMemory[currentTool].textAlign = "left";
+            }
           }
 
           updatePropUI(prop, val);
@@ -1188,8 +1280,41 @@
         saveHistory();
       };
 
+      function pointInPolygon(point, vs) {
+        let x = point.x, y = point.y;
+        let inside = false;
+        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+          let xi = vs[i].x, yi = vs[i].y;
+          let xj = vs[j].x, yj = vs[j].y;
+          let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      }
+
       function setTool(tool) {
+        // 點擊橡皮擦時，若有選取物件則直接刪除，並保持在選取工具狀態
+        if (tool === "eraser") {
+          if (selectedGroup.length > 0) {
+            selectedGroup.sort((a, b) => b - a).forEach(idx => window.elements.splice(idx, 1));
+            selectedGroup = [];
+            selectedElementIndex = -1;
+            render();
+            saveHistory();
+            updatePropertiesPanel();
+            tool = "select"; 
+          } else if (selectedElementIndex !== -1) {
+            window.elements.splice(selectedElementIndex, 1);
+            selectedElementIndex = -1;
+            render();
+            saveHistory();
+            updatePropertiesPanel();
+            tool = "select"; 
+          }
+        }
+
         currentTool = tool;
+        if (tool !== "select") selectedGroup = []; // 切換工具時清除群組選取
         toolBtns.forEach((b) => b.classList.remove("active"));
         document.querySelector(`[data-tool="${tool}"]`).classList.add("active");
 
@@ -1198,21 +1323,19 @@
         else if (tool === "select") canvas.style.cursor = "default";
         else canvas.style.cursor = "crosshair";
 
-        // 指定工具的預設值設定 (畫筆、矩形、菱形、橢圓)
-        if (["pencil", "rectangle", "diamond", "ellipse"].includes(tool)) {
-          currProps.strokeColor = "#e03131"; // 預設紅色
-          updatePropUI("strokeColor", "#e03131");
-
-          if (["rectangle", "diamond", "ellipse"].includes(tool)) {
-            // 2(矩形)、3(菱形)、4(橢圓) 預設為最粗 (6) 與鈍角 (round)
-            currProps.strokeWidth = 6;
-            currProps.edges = "round";
-            updatePropUI("strokeWidth", 6);
-            updatePropUI("edges", "round");
-          } else if (tool === "pencil") {
-            // 畫筆維持中間粗細 (4)
-            currProps.strokeWidth = 4;
-            updatePropUI("strokeWidth", 4);
+        // 載入工具記憶的屬性
+        if (toolPropsMemory[tool]) {
+          const mem = toolPropsMemory[tool];
+          if (mem.strokeColor !== undefined) { currProps.strokeColor = mem.strokeColor; updatePropUI("strokeColor", mem.strokeColor); }
+          if (mem.backgroundColor !== undefined) { currProps.backgroundColor = mem.backgroundColor; updatePropUI("backgroundColor", mem.backgroundColor); }
+          if (mem.strokeWidth !== undefined) { currProps.strokeWidth = mem.strokeWidth; updatePropUI("strokeWidth", mem.strokeWidth); }
+          if (mem.strokeStyle !== undefined) { currProps.strokeStyle = mem.strokeStyle; updatePropUI("strokeStyle", mem.strokeStyle); }
+          if (mem.edges !== undefined) { currProps.edges = mem.edges; updatePropUI("edges", mem.edges); }
+          if (mem.textAlign !== undefined) { currProps.textAlign = mem.textAlign; updatePropUI("textAlign", mem.textAlign); }
+          if (mem.listType !== undefined) { currProps.listType = mem.listType; updatePropUI("listType", mem.listType); }
+          if (mem.fontSize !== undefined) { 
+            currProps.fontSize = mem.fontSize; 
+            document.getElementById("font-size-display").textContent = mem.fontSize;
           }
         }
 
@@ -1267,24 +1390,48 @@
           D: "pencil",
           t: "text",
           T: "text",
-          0: "eraser",
+          e: "eraser",
+          E: "eraser",
           f: "laser",
           F: "laser",
+          l: "lasso",
+          L: "lasso",
+          h: "highlighter",
+          H: "highlighter",
         };
         if (keyMap[e.key]) setTool(keyMap[e.key]);
 
-        // 線條粗細快速鍵 (Q: 最細, W: 中等, E: 最粗)
-        if (["q", "w", "e", "Q", "W", "E"].includes(e.key)) {
+        // 線條粗細快速鍵 (Q: 最細, W: 中等) 
+        if (["q", "w", "Q", "W"].includes(e.key)) {
           let width = 2;
-          if (e.key.toLowerCase() === "w") width = 4;
-          if (e.key.toLowerCase() === "e") width = 6;
+          
+          // 如果目前是螢光筆，或選取的是螢光筆物件，採用較粗的級距
+          let activeTool = currentTool;
+          if (selectedElementIndex !== -1) {
+            activeTool = window.elements[selectedElementIndex].type;
+          }
+          
+          if (activeTool === "highlighter") {
+            width = 12;
+            if (e.key.toLowerCase() === "w") width = 24;
+          } else {
+            if (e.key.toLowerCase() === "w") width = 4;
+          }
 
           currProps.strokeWidth = width;
           updatePropUI("strokeWidth", width);
 
-          // 如果當前有選取的圖形，直接修改它的粗細
+          // 記憶透過快捷鍵改變的粗細
+          if (toolPropsMemory[currentTool]) {
+            toolPropsMemory[currentTool].strokeWidth = width;
+          }
+
           if (selectedElementIndex !== -1) {
             window.elements[selectedElementIndex].strokeWidth = width;
+            render();
+            saveHistory();
+          } else if (selectedGroup.length > 0) {
+            selectedGroup.forEach(idx => window.elements[idx].strokeWidth = width);
             render();
             saveHistory();
           }
@@ -1303,29 +1450,44 @@
           currProps.strokeColor = color;
           updatePropUI("strokeColor", color);
 
-          // 如果當前有選取的圖形，直接修改它的顏色
+          // 記憶透過快捷鍵改變的顏色
+          if (toolPropsMemory[currentTool]) {
+            toolPropsMemory[currentTool].strokeColor = color;
+          }
+
           if (selectedElementIndex !== -1) {
             window.elements[selectedElementIndex].strokeColor = color;
+            render();
+            saveHistory();
+          } else if (selectedGroup.length > 0) {
+            selectedGroup.forEach(idx => window.elements[idx].strokeColor = color);
             render();
             saveHistory();
           }
           return;
         }
 
-        if (
-          (e.key === "Delete" || e.key === "Backspace") &&
-          selectedElementIndex !== -1
-        ) {
-          window.elements.splice(selectedElementIndex, 1);
-          selectedElementIndex = -1;
-          render();
-          updatePropertiesPanel();
-          saveHistory();
+        if (e.key === "Delete" || e.key === "Backspace") {
+          if (selectedGroup.length > 0) {
+            selectedGroup.sort((a, b) => b - a).forEach(idx => {
+              window.elements.splice(idx, 1);
+            });
+            selectedGroup = [];
+            selectedElementIndex = -1;
+            render();
+            updatePropertiesPanel();
+            saveHistory();
+          } else if (selectedElementIndex !== -1) {
+            window.elements.splice(selectedElementIndex, 1);
+            selectedElementIndex = -1;
+            render();
+            updatePropertiesPanel();
+            saveHistory();
+          }
         }
       });
 
       window.addEventListener("keyup", (e) => {
-        // 空白鍵長按事件已移除，改為 keydown 循環切換
       });
 
       window.addEventListener("paste", (e) => {
@@ -1411,7 +1573,7 @@
 
       function getElementBounds(el) {
         let minX, minY, maxX, maxY;
-        if (el.type === "pencil" || el.type === "line" || el.type === "arrow") {
+        if (el.type === "pencil" || el.type === "highlighter" || el.type === "line" || el.type === "arrow") {
           if (!el.points || el.points.length === 0) return null;
           minX = Math.min(...el.points.map((p) => p.x));
           minY = Math.min(...el.points.map((p) => p.y));
@@ -1487,7 +1649,7 @@
 
       // 支援滑鼠、觸控與觸控筆
       canvas.addEventListener("pointerdown", (e) => {
-        if (e.pointerId) canvas.setPointerCapture(e.pointerId); // 讓觸控筆不會因為滑太快斷線
+        if (e.pointerId) canvas.setPointerCapture(e.pointerId); 
         const pos = getMousePos(e);
 
         if (isSpacePressed || e.button === 1 || currentTool === "hand") {
@@ -1500,6 +1662,49 @@
         if (e.button !== 0) return;
 
         if (currentTool === "select") {
+          if (selectedGroup.length > 0) {
+            let hitGroup = false;
+            for (let i = 0; i < selectedGroup.length; i++) {
+              const el = window.elements[selectedGroup[i]];
+              const bounds = getElementBounds(el);
+              if (bounds) {
+                let mx = pos.x, my = pos.y;
+                if (el.angle) {
+                  const cx = (bounds.minX + bounds.maxX) / 2;
+                  const cy = (bounds.minY + bounds.maxY) / 2;
+                  const cosA = Math.cos(-el.angle);
+                  const sinA = Math.sin(-el.angle);
+                  mx = cx + (pos.x - cx) * cosA - (pos.y - cy) * sinA;
+                  my = cy + (pos.x - cx) * sinA + (pos.y - cy) * cosA;
+                }
+                const selectPadding = 8 + (el.strokeWidth || 2) / 2;
+                const delX = bounds.maxX + selectPadding;
+                const delY = bounds.minY - selectPadding;
+                if (Math.hypot(mx - delX, my - delY) <= 12) {
+                  selectedGroup.sort((a, b) => b - a).forEach(idx => window.elements.splice(idx, 1));
+                  selectedGroup = [];
+                  selectedElementIndex = -1;
+                  render();
+                  saveHistory();
+                  updatePropertiesPanel();
+                  return;
+                }
+              }
+              if (hitTest(pos.x, pos.y, window.elements[selectedGroup[i]])) {
+                hitGroup = true;
+                break;
+              }
+            }
+            if (hitGroup) {
+              isDraggingGroup = true;
+              dragOffsetX = pos.x;
+              dragOffsetY = pos.y;
+              return;
+            } else {
+              selectedGroup = [];
+            }
+          }
+
           if (selectedElementIndex !== -1) {
             const el = window.elements[selectedElementIndex];
             const bounds = getElementBounds(el);
@@ -1515,6 +1720,18 @@
                 my = cy + (pos.x - cx) * sinA + (pos.y - cy) * cosA;
               }
               const selectPadding = 8 + (el.strokeWidth || 2) / 2;
+
+              // 檢查是否點擊右上角的刪除控制點 (X)
+              const delX = bounds.maxX + selectPadding;
+              const delY = bounds.minY - selectPadding;
+              if (Math.hypot(mx - delX, my - delY) <= 12) {
+                window.elements.splice(selectedElementIndex, 1);
+                selectedElementIndex = -1;
+                render();
+                saveHistory();
+                updatePropertiesPanel();
+                return;
+              }
 
               // 檢查是否點擊旋轉控制點
               const rotX = (bounds.minX + bounds.maxX) / 2;
@@ -1584,7 +1801,13 @@
         } else if (currentTool === "laser") {
           isLaserActive = true;
           laserTrail = [{ x: pos.x, y: pos.y, time: Date.now() }];
-          updateLaser(); // 啟動雷射動畫
+          updateLaser(); 
+        } else if (currentTool === "lasso") {
+          selectedElementIndex = -1;
+          selectedGroup = [];
+          lassoPath = [{ x: pos.x, y: pos.y }];
+          isDrawing = true;
+          updatePropertiesPanel();
         } else {
           selectedElementIndex = -1; // 開始新繪圖時取消前一個選取，避免畫面殘留選取框
           updatePropertiesPanel();
@@ -1628,6 +1851,21 @@
           if (deleted) {
             render();
           }
+          return;
+        }
+
+        if (isDraggingGroup && selectedGroup.length > 0) {
+          let dx = pos.x - dragOffsetX;
+          let dy = pos.y - dragOffsetY;
+          selectedGroup.forEach(idx => {
+            const el = window.elements[idx];
+            if (el.points) el.points.forEach((p) => { p.x += dx; p.y += dy; });
+            el.x += dx;
+            el.y += dy;
+          });
+          dragOffsetX = pos.x;
+          dragOffsetY = pos.y;
+          render();
           return;
         }
 
@@ -1681,7 +1919,14 @@
 
               const rotX = (bounds.minX + bounds.maxX) / 2;
               const rotY = bounds.minY - selectPadding - 25;
-              if (Math.hypot(mx - rotX, my - rotY) <= 12) {
+              
+              const delX = bounds.maxX + selectPadding;
+              const delY = bounds.minY - selectPadding;
+
+              if (Math.hypot(mx - delX, my - delY) <= 12) {
+                canvas.style.cursor = "pointer";
+                cursorSet = true;
+              } else if (Math.hypot(mx - rotX, my - rotY) <= 12) {
                 canvas.style.cursor = "grab";
                 cursorSet = true;
               } else if (
@@ -1752,10 +1997,20 @@
         // 處理繪圖預覽
         if (!isDrawing) return;
 
+        if (currentTool === "lasso") {
+          lassoPath.push({ x: pos.x, y: pos.y });
+          render();
+          return;
+        }
+
         currentElement.w = pos.x - startX;
         currentElement.h = pos.y - startY;
-        if (currentTool === "pencil") {
-          currentElement.points.push({ x: pos.x, y: pos.y });
+        if (currentTool === "pencil" || currentTool === "highlighter") {
+          // 將座標精簡到小數點第一位，大幅減少 JSON 檔案體積
+          currentElement.points.push({ 
+            x: Math.round(pos.x * 10) / 10, 
+            y: Math.round(pos.y * 10) / 10 
+          });
         } else if (currentTool === "line" || currentTool === "arrow") {
           let targetX = pos.x;
           let targetY = pos.y;
@@ -1778,15 +2033,20 @@
       });
 
       canvas.addEventListener("pointerup", (e) => {
-        if (e.pointerId) canvas.releasePointerCapture(e.pointerId); // 釋放觸控筆捕捉
+        if (e.pointerId) canvas.releasePointerCapture(e.pointerId); 
         if (isPanning) {
           isPanning = false;
-          saveToLocalStorage(); // 紀錄平移後的座標
+          saveToLocalStorage(); 
           if (!isSpacePressed) setTool(currentTool);
           return;
         }
 
         let shouldSave = false;
+
+        if (isDraggingGroup) {
+          isDraggingGroup = false;
+          shouldSave = true;
+        }
 
         if (isDraggingElement) {
           isDraggingElement = false;
@@ -1803,10 +2063,10 @@
         }
 
         if (currentTool === "eraser") {
-          shouldSave = true; // 橡皮擦可能在移動時刪除元素，統一在滑鼠放開時紀錄歷史
+          shouldSave = true; 
         }
 
-        // 縮放結束時，確保寬高正規化 (防反轉時出現的負數)
+        // 縮放結束時，確保寬高正規化
         if (isResizingElement) {
           isResizingElement = false;
           if (selectedElementIndex !== -1) {
@@ -1825,10 +2085,35 @@
 
         if (isDrawing) {
           isDrawing = false;
+          
+          if (currentTool === "lasso") {
+            if (lassoPath.length > 2) {
+              selectedGroup = [];
+              window.elements.forEach((el, index) => {
+                const bounds = getElementBounds(el);
+                if (bounds) {
+                  const cx = (bounds.minX + bounds.maxX) / 2;
+                  const cy = (bounds.minY + bounds.maxY) / 2;
+                  if (pointInPolygon({x: cx, y: cy}, lassoPath)) {
+                    selectedGroup.push(index);
+                  }
+                }
+              });
+              if (selectedGroup.length === 1) {
+                selectedElementIndex = selectedGroup[0];
+                selectedGroup = [];
+              }
+              setTool("select");
+            }
+            lassoPath = [];
+            render();
+            return;
+          }
+
           let added = false;
           if (
-            (currentTool === "pencil" && currentElement.points.length > 1) ||
-            (currentTool !== "pencil" &&
+            (["pencil", "highlighter"].includes(currentTool) && currentElement.points.length > 1) ||
+            (!["pencil", "highlighter"].includes(currentTool) &&
               (Math.abs(currentElement.w) > 2 ||
                 Math.abs(currentElement.h) > 2))
           ) {
@@ -1850,7 +2135,6 @@
           }
           currentElement = null;
 
-          // 畫完圖形自動變成選取狀態，讓用戶可以直接點面板改顏色粗細，但不自動切換回選取工具，以便連續作圖
           if (added) {
             selectedElementIndex = window.elements.length - 1;
             render();
@@ -1899,7 +2183,7 @@
         
         textInput.onkeydown = (e) => {
           const start = textInput.selectionStart;
-          const end = textInput.selectionEnd; // 補回遺失的變數
+          const end = textInput.selectionEnd; 
           const val = textInput.value;
           const lineStart = val.lastIndexOf('\n', start - 1) + 1;
           const currentLine = val.substring(lineStart, val.indexOf('\n', start) === -1 ? val.length : val.indexOf('\n', start));
@@ -1981,7 +2265,7 @@
           
           let finalVal = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n').trim();
           if (editingIndex !== -1) {
-            if (window.elements[editingIndex]) delete window.elements[editingIndex].isEditing; // 解除隱藏標記
+            if (window.elements[editingIndex]) delete window.elements[editingIndex].isEditing; 
             
             if (finalVal === "") window.elements.splice(editingIndex, 1);
             else {
@@ -2000,18 +2284,17 @@
         };
       }
 
-      // 雙擊畫布偵測文字物件進入編輯模式 (修正編輯框偏移與殘影)
+      // 雙擊畫布偵測文字物件進入編輯模式
       canvas.addEventListener("dblclick", (e) => {
         const pos = getMousePos(e);
         for (let i = window.elements.length - 1; i >= 0; i--) {
           const el = window.elements[i];
           if (el.type === "text" && hitTest(pos.x, pos.y, el)) {
             const bounds = getElementBounds(el);
-            // 計算文字方塊真實的絕對螢幕座標，而非滑鼠點擊位置
             const screenX = bounds.minX * scale + offsetX;
             const screenY = bounds.minY * scale + offsetY;
             
-            el.isEditing = true; // 標記為編輯中，讓畫布暫時隱藏此文字避免重疊殘影
+            el.isEditing = true; 
             startTextEdit(screenX, screenY, el.x, el.y, el.text, i);
             render();
             return;
@@ -2025,7 +2308,7 @@
         this.style.width = this.scrollWidth + 30 + "px";
       });
 
-      // 圖片上傳 (維持無壓縮邏輯)
+      // 圖片上傳
       fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -2063,7 +2346,7 @@
 
         if (el.strokeStyle === "dashed") ctx.setLineDash([10, 10]);
         else if (el.strokeStyle === "dotted") ctx.setLineDash([2, 6]);
-        else ctx.setLineDash([]); // solid default
+        else ctx.setLineDash([]); 
       }
 
       function fillAndStroke(ctx, el) {
@@ -2164,7 +2447,12 @@
             }
             break;
           case "pencil":
-            ctx.fillStyle = "transparent"; // Pencil is line only
+          case "highlighter":
+            ctx.fillStyle = "transparent";
+            if (el.type === "highlighter") {
+              ctx.globalAlpha = 0.4; // 螢光筆半透明
+              ctx.lineCap = "square"; // 螢光筆改用平頭
+            }
             if (el.points && el.points.length > 0) {
               ctx.moveTo(el.points[0].x, el.points[0].y);
               for (let i = 1; i < el.points.length; i++) {
@@ -2179,6 +2467,7 @@
               );
               ctx.stroke();
             }
+            ctx.globalAlpha = 1.0; // 畫完恢復透明度
             break;
           case "text":
             const fs = el.fontSize || 24;
@@ -2217,7 +2506,6 @@
         ctx.save();
         ctx.strokeStyle = "#e9ecef";
         ctx.lineWidth = 1;
-        // 讓網格線的大小隨縮放比例調整
         const scaledGridSize = 20 * scale;
         const startX = offsetX % scaledGridSize;
         const startY = offsetY % scaledGridSize;
@@ -2242,6 +2530,7 @@
         ctx.stroke();
         ctx.restore();
       }
+      
       function drawSelectionBox(ctx, el) {
         const bounds = getElementBounds(el);
         if (!bounds) return;
@@ -2296,6 +2585,25 @@
         ctx.fill();
         ctx.stroke();
 
+        // 繪製右上角的「刪除控制點」 (X)
+        ctx.fillStyle = "#ef4444";
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        const delX = maxX + selectPadding;
+        const delY = minY - selectPadding;
+        ctx.beginPath();
+        ctx.arc(delX, delY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(delX - 3, delY - 3);
+        ctx.lineTo(delX + 3, delY + 3);
+        ctx.moveTo(delX + 3, delY - 3);
+        ctx.lineTo(delX - 3, delY + 3);
+        ctx.stroke();
+
         ctx.restore();
       }
 
@@ -2305,14 +2613,32 @@
         drawGrid(ctx, canvas.width, canvas.height);
         ctx.save();
         ctx.translate(offsetX, offsetY);
-        ctx.scale(scale, scale); // 套用繪圖內容的縮放
+        ctx.scale(scale, scale); 
 
         window.elements.forEach((el, index) => {
-          if (el.isEditing) return; // 編輯中的文字暫不渲染，避免與輸入框重疊產生殘影
+          if (el.isEditing) return; 
           drawElement(ctx, el);
-          if (index === selectedElementIndex) drawSelectionBox(ctx, el);
+          if (index === selectedElementIndex || selectedGroup.includes(index)) {
+            drawSelectionBox(ctx, el);
+          }
         });
         if (isDrawing && currentElement) drawElement(ctx, currentElement);
+
+        if (isDrawing && currentTool === "lasso" && lassoPath.length > 0) {
+          ctx.beginPath();
+          ctx.moveTo(lassoPath[0].x, lassoPath[0].y);
+          for (let i = 1; i < lassoPath.length; i++) {
+            ctx.lineTo(lassoPath[i].x, lassoPath[i].y);
+          }
+          ctx.lineTo(lassoPath[0].x, lassoPath[0].y);
+          ctx.strokeStyle = "#6965db";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([5, 5]);
+          ctx.fillStyle = "rgba(105, 101, 219, 0.1)";
+          ctx.fill();
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
 
         // 繪製雷射筆軌跡
         if (laserTrail.length > 1) {
@@ -2367,12 +2693,12 @@
         link.click();
       });
 
-      // 匯出專案存檔 (儲存所有物件狀態)
+      // 匯出專案存檔 
       document.getElementById("save-project-btn").addEventListener("click", () => {
         const data = {
           elements: window.elements.map(el => {
             if (el.type === 'image') {
-              const { img, ...rest } = el; // 移除不可序列化的 img 物件
+              const { img, ...rest } = el; 
               return rest;
             }
             return el;
@@ -2418,7 +2744,7 @@
             
             selectedElementIndex = -1;
             render();
-            saveHistory(); // 紀錄歷史以便復原
+            saveHistory(); 
             showToast("專案已成功載入");
           } catch (err) {
             showToast("載入失敗：檔案格式錯誤");
@@ -2492,7 +2818,7 @@
       canvas.addEventListener("touchstart", (e) => {
         if (e.touches.length === 2) {
           if (longPressTimer) clearTimeout(longPressTimer);
-          e.preventDefault(); // 防止瀏覽器預設的畫面縮放或重整
+          e.preventDefault(); 
           const t1 = e.touches[0];
           const t2 = e.touches[1];
           initialPinchDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
