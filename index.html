@@ -1270,6 +1270,27 @@
           return;
         }
 
+        // 顏色快速鍵 (R: 紅, G: 綠, B: 藍, Y: 黃)
+        if (["r", "g", "b", "y", "R", "G", "B", "Y"].includes(e.key)) {
+          let color = "#1e1e1e";
+          const k = e.key.toLowerCase();
+          if (k === "r") color = "#e03131";
+          if (k === "g") color = "#2f9e44";
+          if (k === "b") color = "#1971c2";
+          if (k === "y") color = "#f08c00";
+
+          currProps.strokeColor = color;
+          updatePropUI("strokeColor", color);
+
+          // 如果當前有選取的圖形，直接修改它的顏色
+          if (selectedElementIndex !== -1) {
+            window.elements[selectedElementIndex].strokeColor = color;
+            render();
+            saveHistory();
+          }
+          return;
+        }
+
         if (
           (e.key === "Delete" || e.key === "Backspace") &&
           selectedElementIndex !== -1
@@ -1291,8 +1312,9 @@
         const items = (e.clipboardData || e.originalEvent.clipboardData).items;
         let hasImage = false;
 
-        const viewCenterX = canvas.width / 2 - offsetX;
-        const viewCenterY = canvas.height / 2 - offsetY;
+        // 精確計算目前視窗正中心的畫布座標 (考慮縮放與偏移)
+        const viewCenterX = (canvas.width / 2 - offsetX) / scale;
+        const viewCenterY = (canvas.height / 2 - offsetY) / scale;
 
         for (let index in items) {
           const item = items[index];
@@ -1302,14 +1324,14 @@
             reader.onload = function (event) {
               const img = new Image();
               img.onload = function () {
-                let w = img.width,
-                  h = img.height;
+                let w = img.width, h = img.height;
 
-                // 不壓縮原圖畫質，但將「預設顯示尺寸」縮放至符合目前畫布的 80% 以內
-                const maxWidth = canvas.width * 0.8;
-                const maxHeight = canvas.height * 0.8;
-                if (w > maxWidth || h > maxHeight) {
-                  const ratio = Math.min(maxWidth / w, maxHeight / h);
+                // 保持原圖解析度，但將「顯示尺寸」調整為當前可見畫面的 70%
+                const maxVisibleW = (canvas.width * 0.7) / scale;
+                const maxVisibleH = (canvas.height * 0.7) / scale;
+                
+                if (w > maxVisibleW || h > maxVisibleH) {
+                  const ratio = Math.min(maxVisibleW / w, maxVisibleH / h);
                   w = w * ratio;
                   h = h * ratio;
                 }
@@ -1323,7 +1345,6 @@
                   w: w,
                   h: h,
                 });
-                // 畫完自動選取，以利直接縮放
                 selectedElementIndex = window.elements.length - 1;
                 setTool("select");
                 saveHistory();
@@ -1339,15 +1360,13 @@
         }
 
         if (!hasImage) {
-          const text = (e.clipboardData || window.clipboardData).getData(
-            "text",
-          );
+          const text = (e.clipboardData || window.clipboardData).getData("text");
           if (text && text.trim() !== "") {
             window.elements.push({
               type: "text",
               text: text,
-              x: viewCenterX - text.length * 10,
-              y: viewCenterY - 12,
+              x: viewCenterX - (text.length * 10) / scale,
+              y: viewCenterY - 12 / scale,
               strokeColor: currProps.strokeColor,
               fontSize: currProps.fontSize,
             });
