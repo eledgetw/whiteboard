@@ -2,6 +2,10 @@
 
 A lightweight, smooth, and powerful web-based digital whiteboard tool. Developed with native HTML5 Canvas and JavaScript, and styled with Tailwind CSS for a modern interface, it aims to provide an extremely simple yet feature-rich creative experience.
 
+## 🚀 Live Demo
+
+**[Try it now: https://eledgetw.github.io/whiteboard/](https://eledgetw.github.io/whiteboard/)**
+
 ## 🌟 Core Features
 
 * **Fully Offline & Private**: Runs as a single HTML file. All drawing data is stored in the browser's local cache (LocalStorage), ensuring your privacy.
