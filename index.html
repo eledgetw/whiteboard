@@ -2454,6 +2454,76 @@
         { passive: false },
       );
 
+      // 實作平板與觸控裝置的雙指縮放與平移
+      let initialPinchDistance = null;
+      let initialScale = 1;
+      let lastPanCenter = null;
+
+      canvas.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 2) {
+          e.preventDefault(); // 防止瀏覽器預設的畫面縮放或重整
+          const t1 = e.touches[0];
+          const t2 = e.touches[1];
+          initialPinchDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+          initialScale = scale;
+          lastPanCenter = {
+            x: (t1.clientX + t2.clientX) / 2,
+            y: (t1.clientY + t2.clientY) / 2
+          };
+          
+          // 雙指操作時強制取消單指的繪圖狀態，避免產生誤觸的線條或圖形
+          isDrawing = false;
+          if (currentElement && selectedElementIndex === -1) {
+            currentElement = null;
+            render();
+          }
+        }
+      }, { passive: false });
+
+      canvas.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 2) {
+          e.preventDefault();
+          const t1 = e.touches[0];
+          const t2 = e.touches[1];
+          const currentDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+          const currentCenter = {
+            x: (t1.clientX + t2.clientX) / 2,
+            y: (t1.clientY + t2.clientY) / 2
+          };
+
+          // 處理平移 (雙指拖曳)
+          if (lastPanCenter) {
+            offsetX += currentCenter.x - lastPanCenter.x;
+            offsetY += currentCenter.y - lastPanCenter.y;
+          }
+
+          // 處理縮放
+          if (initialPinchDistance) {
+            const pinchRatio = currentDistance / initialPinchDistance;
+            const nextScale = initialScale * pinchRatio;
+
+            // 限制縮放範圍 (10% ~ 2000%)
+            if (nextScale >= 0.1 && nextScale <= 20) {
+              // 縮放時以雙指的中心點為縮放基準心
+              offsetX = currentCenter.x - (currentCenter.x - offsetX) * (nextScale / scale);
+              offsetY = currentCenter.y - (currentCenter.y - offsetY) * (nextScale / scale);
+              scale = nextScale;
+            }
+          }
+
+          lastPanCenter = currentCenter;
+          render();
+          saveToLocalStorage();
+        }
+      }, { passive: false });
+
+      canvas.addEventListener("touchend", (e) => {
+        if (e.touches.length < 2) {
+          initialPinchDistance = null;
+          lastPanCenter = null;
+        }
+      });
+
       // 初始 UI 狀態
       updatePropertiesPanel();
     </script>
