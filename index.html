@@ -134,12 +134,40 @@
           0 0,
           4px 4px;
       }
+
+      /* 響應式：直向螢幕或寬度較小時，工具列自動改為靠左垂直排列 */
+      @media (orientation: portrait), (max-width: 768px) {
+        #main-toolbar {
+          top: 50% !important;
+          left: 12px !important;
+          transform: translateY(-50%) !important;
+          flex-direction: column !important;
+          max-height: 90vh !important;
+          overflow-y: auto !important;
+          -ms-overflow-style: none; /* 隱藏捲軸 IE/Edge */
+          scrollbar-width: none; /* 隱藏捲軸 Firefox */
+        }
+        #main-toolbar::-webkit-scrollbar {
+          display: none; /* 隱藏捲軸 Chrome/Safari */
+        }
+        /* 將分隔線從垂直改為水平 */
+        .toolbar-divider {
+          width: 24px !important;
+          height: 1px !important;
+          margin: 4px 0 !important;
+        }
+        /* 避免屬性面板與工具列重疊，將屬性面板往右移 */
+        #properties-panel {
+          left: 76px !important;
+        }
+      }
     </style>
   </head>
   <body>
     <!-- 頂部工具列 -->
     <div
-      class="fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-1 bg-white p-1.5 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 z-20"
+      id="main-toolbar"
+      class="fixed top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-1 bg-white p-1.5 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 z-20 transition-all duration-300"
     >
       <button id="undo-btn" class="tool-btn" title="上一動 (Ctrl+Z)">
         <svg
@@ -171,7 +199,7 @@
           <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
         </svg>
       </button>
-      <div class="w-[1px] h-6 bg-gray-200 mx-1"></div>
+      <div class="toolbar-divider w-[1px] h-6 bg-gray-200 mx-1"></div>
       <button class="tool-btn" data-tool="hand" title="拖曳畫布 (空白鍵切換)">
         <svg
           width="20"
@@ -344,26 +372,52 @@
         <span class="shortcut">T</span>
       </button>
       <button class="tool-btn" data-tool="lasso" title="套索 (Lasso)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9.6 20H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6.5"></path>
-          <path d="M12 14c-1.5 0-2.5 1-2.5 2.5S10.5 19 12 19s2.5-1 2.5-2.5-1-2.5-2.5-2.5z"></path>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M9.6 20H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6.5"
+          ></path>
+          <path
+            d="M12 14c-1.5 0-2.5 1-2.5 2.5S10.5 19 12 19s2.5-1 2.5-2.5-1-2.5-2.5-2.5z"
+          ></path>
           <path d="M14 16.5L19 22"></path>
         </svg>
         <span class="shortcut">L</span>
       </button>
-      <button class="tool-btn" data-tool="highlighter" title="螢光筆 (Highlighter)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m9 11 6 6"/>
-          <path d="M12 7h.01"/>
-          <path d="M16 11h.01"/>
-          <path d="M11 22h10"/>
-          <path d="m18 2-5 4"/>
-          <path d="M7 18a2 2 0 0 1-2-2c0-2 4-6 4-6s4 4 4 6a2 2 0 0 1-2 2z"/>
+      <button
+        class="tool-btn"
+        data-tool="highlighter"
+        title="螢光筆 (Highlighter)"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m9 11 6 6" />
+          <path d="M12 7h.01" />
+          <path d="M16 11h.01" />
+          <path d="M11 22h10" />
+          <path d="m18 2-5 4" />
+          <path d="M7 18a2 2 0 0 1-2-2c0-2 4-6 4-6s4 4 4 6a2 2 0 0 1-2 2z" />
         </svg>
         <span class="shortcut">H</span>
       </button>
-      
-      <div class="w-[1px] h-6 bg-gray-200 mx-1"></div>
+
+      <div class="toolbar-divider w-[1px] h-6 bg-gray-200 mx-1"></div>
       <button
         id="clear-btn"
         class="tool-btn text-red-500 hover:bg-red-50"
@@ -385,7 +439,11 @@
           ></path>
         </svg>
       </button>
-      <button class="tool-btn text-blue-500 hover:bg-blue-50" data-tool="eraser" title="橡皮擦 (E)">
+      <button
+        class="tool-btn text-blue-500 hover:bg-blue-50"
+        data-tool="eraser"
+        title="橡皮擦 (E)"
+      >
         <svg
           width="20"
           height="20"
@@ -412,11 +470,30 @@
     >
       <div
         id="panel-drag-handle"
-        class="w-full h-6 bg-gray-50 hover:bg-gray-100 rounded-t-xl cursor-move flex items-center justify-center border-b border-gray-200 transition-colors"
+        class="relative w-full h-8 bg-gray-50 hover:bg-gray-100 rounded-t-xl cursor-move flex items-center justify-center border-b border-gray-200 transition-colors"
       >
         <div class="w-8 h-1 bg-gray-300 rounded-full"></div>
+        <button
+          id="toggle-panel-btn"
+          class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded cursor-pointer transition-colors"
+          title="展開/收合"
+        >
+          <svg
+            id="toggle-panel-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
       </div>
-      <div class="p-4 flex flex-col gap-4">
+      <div id="properties-content" class="p-4 flex flex-col gap-4">
         <div>
           <label class="text-xs text-gray-700 font-medium mb-2 block"
             >邊框顏色 (Stroke)</label
@@ -547,17 +624,44 @@
               data-val="12"
             >
               <svg width="24" height="24" viewBox="0 0 24 24">
-                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="6" stroke-linecap="square" stroke-opacity="0.4" />
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="6"
+                  stroke-linecap="square"
+                  stroke-opacity="0.4"
+                />
               </svg>
             </button>
             <button class="prop-btn w-10" data-prop="strokeWidth" data-val="24">
               <svg width="24" height="24" viewBox="0 0 24 24">
-                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="12" stroke-linecap="square" stroke-opacity="0.4" />
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="12"
+                  stroke-linecap="square"
+                  stroke-opacity="0.4"
+                />
               </svg>
             </button>
             <button class="prop-btn w-10" data-prop="strokeWidth" data-val="36">
               <svg width="24" height="24" viewBox="0 0 24 24">
-                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="18" stroke-linecap="square" stroke-opacity="0.4" />
+                <line
+                  x1="4"
+                  y1="12"
+                  x2="20"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="18"
+                  stroke-linecap="square"
+                  stroke-opacity="0.4"
+                />
               </svg>
             </button>
           </div>
@@ -677,7 +781,10 @@
           <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit items-center">
             <button
               class="prop-btn w-10"
-              onmousedown="event.preventDefault(); changeFontSize(-4)"
+              onmousedown="
+                event.preventDefault();
+                changeFontSize(-4);
+              "
               title="縮小"
             >
               <svg
@@ -699,7 +806,10 @@
             </div>
             <button
               class="prop-btn w-10"
-              onmousedown="event.preventDefault(); changeFontSize(4)"
+              onmousedown="
+                event.preventDefault();
+                changeFontSize(4);
+              "
               title="放大"
             >
               <svg
@@ -717,19 +827,150 @@
           </div>
         </div>
         <div id="panel-text-align">
-          <label class="text-xs text-gray-700 font-medium mb-2 block">文字對齊 (Align)</label>
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >文字對齊 (Align)</label
+          >
           <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit">
-            <button class="prop-btn w-10" data-prop="textAlign" data-val="left" title="靠左"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg></button>
-            <button class="prop-btn w-10 active" data-prop="textAlign" data-val="center" title="置中"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg></button>
-            <button class="prop-btn w-10" data-prop="textAlign" data-val="right" title="靠右"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg></button>
+            <button
+              class="prop-btn w-10"
+              data-prop="textAlign"
+              data-val="left"
+              title="靠左"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="17" y1="10" x2="3" y2="10"></line>
+                <line x1="21" y1="6" x2="3" y2="6"></line>
+                <line x1="21" y1="14" x2="3" y2="14"></line>
+                <line x1="17" y1="18" x2="3" y2="18"></line>
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-10 active"
+              data-prop="textAlign"
+              data-val="center"
+              title="置中"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="10" x2="6" y2="10"></line>
+                <line x1="21" y1="6" x2="3" y2="6"></line>
+                <line x1="21" y1="14" x2="3" y2="14"></line>
+                <line x1="18" y1="18" x2="6" y2="18"></line>
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-10"
+              data-prop="textAlign"
+              data-val="right"
+              title="靠右"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="21" y1="10" x2="7" y2="10"></line>
+                <line x1="21" y1="6" x2="3" y2="6"></line>
+                <line x1="21" y1="14" x2="3" y2="14"></line>
+                <line x1="21" y1="18" x2="7" y2="18"></line>
+              </svg>
+            </button>
           </div>
         </div>
         <div id="panel-list-type">
-          <label class="text-xs text-gray-700 font-medium mb-2 block">項目符號 (List)</label>
+          <label class="text-xs text-gray-700 font-medium mb-2 block"
+            >項目符號 (List)</label
+          >
           <div class="flex gap-2 bg-gray-50 rounded-lg p-1 w-fit">
-            <button class="prop-btn w-10 active" data-prop="listType" data-val="none" title="無"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-            <button class="prop-btn w-10" data-prop="listType" data-val="bullet" title="項目符號"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"></line><line x1="9" y1="12" x2="20" y2="12"></line><line x1="9" y1="18" x2="20" y2="18"></line><circle cx="4" cy="6" r="1.5"></circle><circle cx="4" cy="12" r="1.5"></circle><circle cx="4" cy="18" r="1.5"></circle></svg></button>
-            <button class="prop-btn w-10" data-prop="listType" data-val="number" title="數字項目符號"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="20" y2="6"></line><line x1="10" y1="12" x2="20" y2="12"></line><line x1="10" y1="18" x2="20" y2="18"></line><path d="M4 4v4"></path><path d="M4 12h2"></path><path d="M4 18h2"></path></svg></button>
+            <button
+              class="prop-btn w-10 active"
+              data-prop="listType"
+              data-val="none"
+              title="無"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-10"
+              data-prop="listType"
+              data-val="bullet"
+              title="項目符號"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="9" y1="6" x2="20" y2="6"></line>
+                <line x1="9" y1="12" x2="20" y2="12"></line>
+                <line x1="9" y1="18" x2="20" y2="18"></line>
+                <circle cx="4" cy="6" r="1.5"></circle>
+                <circle cx="4" cy="12" r="1.5"></circle>
+                <circle cx="4" cy="18" r="1.5"></circle>
+              </svg>
+            </button>
+            <button
+              class="prop-btn w-10"
+              data-prop="listType"
+              data-val="number"
+              title="數字項目符號"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="10" y1="6" x2="20" y2="6"></line>
+                <line x1="10" y1="12" x2="20" y2="12"></line>
+                <line x1="10" y1="18" x2="20" y2="18"></line>
+                <path d="M4 4v4"></path>
+                <path d="M4 12h2"></path>
+                <path d="M4 18h2"></path>
+              </svg>
+            </button>
           </div>
         </div>
         <div
@@ -823,8 +1064,15 @@
       </div>
     </div>
     <!-- 右下角匯出 (原本在右上) -->
-    <div id="export-panel" class="fixed bottom-4 right-4 z-20 flex items-center bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 select-none">
-      <div id="export-drag-handle" class="w-6 h-full flex flex-col items-center justify-center cursor-move hover:bg-gray-100 rounded-l-xl border-r border-gray-200 py-3 transition-colors" title="拖曳移動">
+    <div
+      id="export-panel"
+      class="fixed bottom-4 right-4 z-20 flex items-center bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-gray-200 select-none"
+    >
+      <div
+        id="export-drag-handle"
+        class="w-6 h-full flex flex-col items-center justify-center cursor-move hover:bg-gray-100 rounded-l-xl border-r border-gray-200 py-3 transition-colors"
+        title="拖曳移動"
+      >
         <div class="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
         <div class="w-1 h-1 bg-gray-400 rounded-full mb-1"></div>
         <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
@@ -835,21 +1083,63 @@
           class="flex items-center justify-center bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 w-10 h-10 rounded-lg shadow-sm transition-colors"
           title="匯出專案存檔 (.json)"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+            />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
         </button>
         <button
           id="load-project-btn"
           class="flex items-center justify-center bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 w-10 h-10 rounded-lg shadow-sm transition-colors"
           title="載入專案存檔"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" x2="12" y1="3" y2="15" />
+          </svg>
         </button>
         <button
           id="export-btn"
           class="flex items-center justify-center bg-[#6965db] hover:bg-[#5b57ce] text-white w-10 h-10 rounded-lg shadow-md transition-colors"
           title="下載為照片 (Export to Photo)"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+            />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
         </button>
       </div>
     </div>
@@ -860,9 +1150,29 @@
       class="fixed top-20 left-1/2 transform -translate-x-1/2 -translate-y-4 opacity-0 bg-[#1e1e1e] text-white px-6 py-3 rounded-lg shadow-xl transition-all duration-300 pointer-events-none z-50 text-sm font-medium"
     ></div>
 
-    <div id="custom-context-menu" class="fixed hidden bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[120px]">
-      <button id="menu-paste-btn" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm flex items-center gap-2 transition-colors">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+    <div
+      id="custom-context-menu"
+      class="fixed hidden bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[120px]"
+    >
+      <button
+        id="menu-paste-btn"
+        class="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm flex items-center gap-2 transition-colors"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+          ></path>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+        </svg>
         貼上
       </button>
     </div>
@@ -874,7 +1184,12 @@
       id="file-input"
       accept="image/png, image/jpeg, image/gif, image/webp"
     />
-    <input type="file" id="project-input" accept=".json,.html" style="display:none;" />
+    <input
+      type="file"
+      id="project-input"
+      accept=".json,.html"
+      style="display: none"
+    />
 
     <script>
       const canvas = document.getElementById("board");
@@ -887,7 +1202,7 @@
 
       // 核心狀態管理 (從 localStorage 讀取先前存檔)
       const savedData = JSON.parse(
-        localStorage.getItem("oldman_board_data") || "{}"
+        localStorage.getItem("oldman_board_data") || "{}",
       );
       window.elements = savedData.elements || [];
 
@@ -941,7 +1256,7 @@
           if (el.points) copy.points = el.points.map((p) => ({ ...p }));
           return copy;
         });
-        
+
         // 限制歷史紀錄最多 30 步，避免寫字產生海量紀錄導致記憶體耗盡當機
         if (history.length > 30) {
           history.shift();
@@ -949,7 +1264,7 @@
           historyStep++;
         }
         history.push(elementsCopy);
-        
+
         saveToLocalStorage();
       }
 
@@ -994,28 +1309,66 @@
         strokeWidth: 2,
         strokeStyle: "solid",
         edges: "sharp",
-        fontSize: 24, 
-        textAlign: "center", 
-        listType: "none", 
+        fontSize: 24,
+        textAlign: "center",
+        listType: "none",
       };
 
       // 記憶各個工具最後選擇的屬性
       const toolPropsMemory = {
-        pencil: { strokeColor: "#e03131", strokeWidth: 4, strokeStyle: "solid", backgroundColor: "transparent" },
-        highlighter: { strokeColor: "#f08c00", strokeWidth: 24, strokeStyle: "solid", backgroundColor: "transparent" },
-        rectangle: { strokeColor: "#e03131", strokeWidth: 6, strokeStyle: "solid", edges: "round", backgroundColor: "transparent" },
-        diamond: { strokeColor: "#e03131", strokeWidth: 6, strokeStyle: "solid", edges: "round", backgroundColor: "transparent" },
-        ellipse: { strokeColor: "#e03131", strokeWidth: 6, strokeStyle: "solid", edges: "round", backgroundColor: "transparent" },
+        pencil: {
+          strokeColor: "#e03131",
+          strokeWidth: 4,
+          strokeStyle: "solid",
+          backgroundColor: "transparent",
+        },
+        highlighter: {
+          strokeColor: "#f08c00",
+          strokeWidth: 24,
+          strokeStyle: "solid",
+          backgroundColor: "transparent",
+        },
+        rectangle: {
+          strokeColor: "#e03131",
+          strokeWidth: 6,
+          strokeStyle: "solid",
+          edges: "round",
+          backgroundColor: "transparent",
+        },
+        diamond: {
+          strokeColor: "#e03131",
+          strokeWidth: 6,
+          strokeStyle: "solid",
+          edges: "round",
+          backgroundColor: "transparent",
+        },
+        ellipse: {
+          strokeColor: "#e03131",
+          strokeWidth: 6,
+          strokeStyle: "solid",
+          edges: "round",
+          backgroundColor: "transparent",
+        },
         arrow: { strokeColor: "#1e1e1e", strokeWidth: 2, strokeStyle: "solid" },
         line: { strokeColor: "#1e1e1e", strokeWidth: 2, strokeStyle: "solid" },
-        text: { strokeColor: "#1e1e1e", fontSize: 24, textAlign: "center", listType: "none" }
+        text: {
+          strokeColor: "#1e1e1e",
+          fontSize: 24,
+          textAlign: "center",
+          listType: "none",
+        },
       };
 
       // 修改字體大小的全局函數 (同步更新編輯中狀態)
       window.changeFontSize = function (delta) {
-        currProps.fontSize = Math.max(12, Math.min(120, currProps.fontSize + delta));
-        if (toolPropsMemory["text"]) toolPropsMemory["text"].fontSize = currProps.fontSize;
-        document.getElementById("font-size-display").textContent = currProps.fontSize;
+        currProps.fontSize = Math.max(
+          12,
+          Math.min(120, currProps.fontSize + delta),
+        );
+        if (toolPropsMemory["text"])
+          toolPropsMemory["text"].fontSize = currProps.fontSize;
+        document.getElementById("font-size-display").textContent =
+          currProps.fontSize;
 
         // 如果正在編輯文字，即時縮放輸入框
         if (textInput.style.display === "block") {
@@ -1024,9 +1377,13 @@
           textInput.focus();
         }
 
-        if (selectedElementIndex !== -1 && window.elements[selectedElementIndex].type === "text") {
+        if (
+          selectedElementIndex !== -1 &&
+          window.elements[selectedElementIndex].type === "text"
+        ) {
           window.elements[selectedElementIndex].fontSize = currProps.fontSize;
-          render(); saveHistory();
+          render();
+          saveHistory();
         }
       };
 
@@ -1037,7 +1394,7 @@
       function updateLaser() {
         if (laserTrail.length > 0) {
           const now = Date.now();
-          laserTrail = laserTrail.filter((p) => now - p.time < 500); 
+          laserTrail = laserTrail.filter((p) => now - p.time < 500);
           render();
         }
         if (isLaserActive || laserTrail.length > 0) {
@@ -1059,12 +1416,12 @@
       let selectedElementIndex = -1;
       let isDraggingElement = false;
       let isResizingElement = false;
-      let isRotatingElement = false; 
+      let isRotatingElement = false;
       let dragOffsetX = 0,
         dragOffsetY = 0;
       let dragStartX = 0,
-        dragStartY = 0; 
-      let isConstrainedAxis = null; 
+        dragStartY = 0;
+      let isConstrainedAxis = null;
       let lassoPath = [];
       let selectedGroup = []; // 存放被套索選取的物件 index
       let isDraggingGroup = false;
@@ -1086,7 +1443,8 @@
 
       // 面板拖曳邏輯 (通用型，支援多個面板與 Pointer 觸控事件)
       let activeDragPanel = null;
-      let panelOffsetX = 0, panelOffsetY = 0;
+      let panelOffsetX = 0,
+        panelOffsetY = 0;
 
       function setupDraggable(panelId, handleId) {
         const panel = document.getElementById(panelId);
@@ -1106,14 +1464,45 @@
       setupDraggable("properties-panel", "panel-drag-handle");
       setupDraggable("export-panel", "export-drag-handle");
 
+      // 屬性面板展開/收合邏輯
+      const togglePanelBtn = document.getElementById("toggle-panel-btn");
+      const propertiesContent = document.getElementById("properties-content");
+      const togglePanelIcon = document.getElementById("toggle-panel-icon");
+
+      if (togglePanelBtn) {
+        // 防止點擊收合按鈕時觸發了面板的拖曳
+        togglePanelBtn.addEventListener("pointerdown", (e) => {
+          e.stopPropagation();
+        });
+
+        togglePanelBtn.addEventListener("click", () => {
+          propertiesContent.classList.toggle("hidden");
+          if (propertiesContent.classList.contains("hidden")) {
+            // 收合狀態：箭頭朝下
+            togglePanelIcon.innerHTML =
+              '<polyline points="6 9 12 15 18 9"></polyline>';
+          } else {
+            // 展開狀態：箭頭朝上
+            togglePanelIcon.innerHTML =
+              '<polyline points="18 15 12 9 6 15"></polyline>';
+          }
+        });
+      }
+
       window.addEventListener("pointermove", (e) => {
         if (!activeDragPanel) return;
         let newX = e.clientX - panelOffsetX;
         let newY = e.clientY - panelOffsetY;
 
         // 防止面板被拖出視窗外
-        newX = Math.max(0, Math.min(newX, window.innerWidth - activeDragPanel.offsetWidth));
-        newY = Math.max(0, Math.min(newY, window.innerHeight - activeDragPanel.offsetHeight));
+        newX = Math.max(
+          0,
+          Math.min(newX, window.innerWidth - activeDragPanel.offsetWidth),
+        );
+        newY = Math.max(
+          0,
+          Math.min(newY, window.innerHeight - activeDragPanel.offsetHeight),
+        );
 
         activeDragPanel.style.left = newX + "px";
         activeDragPanel.style.top = newY + "px";
@@ -1129,8 +1518,18 @@
 
       // 更新屬性面板的顯示狀態 (支援對齊與列表控制)
       function updatePropertiesPanel() {
-        const isDrawingTool = ["rectangle", "diamond", "ellipse", "arrow", "line", "pencil", "highlighter", "text"].includes(currentTool);
-        const hasSelection = selectedElementIndex !== -1 && currentTool === "select";
+        const isDrawingTool = [
+          "rectangle",
+          "diamond",
+          "ellipse",
+          "arrow",
+          "line",
+          "pencil",
+          "highlighter",
+          "text",
+        ].includes(currentTool);
+        const hasSelection =
+          selectedElementIndex !== -1 && currentTool === "select";
 
         if (isDrawingTool || hasSelection) {
           propertiesPanel.style.display = "flex";
@@ -1144,11 +1543,15 @@
         const fontSizeControl = document.getElementById("panel-font-size");
         const textAlignControl = document.getElementById("panel-text-align");
         const listTypeControl = document.getElementById("panel-list-type");
-        const normalWidthControl = document.getElementById("panel-stroke-width");
-        const hlWidthControl = document.getElementById("panel-highlighter-width");
+        const normalWidthControl =
+          document.getElementById("panel-stroke-width");
+        const hlWidthControl = document.getElementById(
+          "panel-highlighter-width",
+        );
 
         let activeTool = currentTool;
-        if (hasSelection) activeTool = window.elements[selectedElementIndex].type;
+        if (hasSelection)
+          activeTool = window.elements[selectedElementIndex].type;
 
         if (activeTool === "highlighter") {
           if (normalWidthControl) normalWidthControl.style.display = "none";
@@ -1162,22 +1565,29 @@
           layerControls.style.display = "block";
           const el = window.elements[selectedElementIndex];
           if (el.strokeColor) updatePropUI("strokeColor", el.strokeColor);
-          if (el.backgroundColor) updatePropUI("backgroundColor", el.backgroundColor);
+          if (el.backgroundColor)
+            updatePropUI("backgroundColor", el.backgroundColor);
           if (el.strokeWidth) updatePropUI("strokeWidth", el.strokeWidth);
           if (el.strokeStyle) updatePropUI("strokeStyle", el.strokeStyle);
           if (el.edges) updatePropUI("edges", el.edges);
           if (el.textAlign) updatePropUI("textAlign", el.textAlign);
-          if (el.listType) updatePropUI("listType", el.listType); 
+          if (el.listType) updatePropUI("listType", el.listType);
 
           if (el.type === "text") {
             currProps.fontSize = el.fontSize || 24;
-            document.getElementById("font-size-display").textContent = currProps.fontSize;
+            document.getElementById("font-size-display").textContent =
+              currProps.fontSize;
           }
 
-          edgesControl.style.display = ["rectangle", "diamond"].includes(el.type) ? "block" : "none";
+          edgesControl.style.display = ["rectangle", "diamond"].includes(
+            el.type,
+          )
+            ? "block"
+            : "none";
           fontSizeControl.style.display = el.type === "text" ? "block" : "none";
-          textAlignControl.style.display = el.type === "text" ? "block" : "none";
-          listTypeControl.style.display = el.type === "text" ? "block" : "none"; 
+          textAlignControl.style.display =
+            el.type === "text" ? "block" : "none";
+          listTypeControl.style.display = el.type === "text" ? "block" : "none";
         } else {
           layerControls.style.display = "none";
           updatePropUI("strokeColor", currProps.strokeColor);
@@ -1186,13 +1596,21 @@
           updatePropUI("strokeStyle", currProps.strokeStyle);
           updatePropUI("edges", currProps.edges);
           updatePropUI("textAlign", currProps.textAlign);
-          updatePropUI("listType", currProps.listType); 
-          document.getElementById("font-size-display").textContent = currProps.fontSize;
+          updatePropUI("listType", currProps.listType);
+          document.getElementById("font-size-display").textContent =
+            currProps.fontSize;
 
-          edgesControl.style.display = ["rectangle", "diamond"].includes(currentTool) ? "block" : "none";
-          fontSizeControl.style.display = currentTool === "text" ? "block" : "none";
-          textAlignControl.style.display = currentTool === "text" ? "block" : "none";
-          listTypeControl.style.display = currentTool === "text" ? "block" : "none"; 
+          edgesControl.style.display = ["rectangle", "diamond"].includes(
+            currentTool,
+          )
+            ? "block"
+            : "none";
+          fontSizeControl.style.display =
+            currentTool === "text" ? "block" : "none";
+          textAlignControl.style.display =
+            currentTool === "text" ? "block" : "none";
+          listTypeControl.style.display =
+            currentTool === "text" ? "block" : "none";
         }
       }
 
@@ -1211,14 +1629,33 @@
         });
 
         btn.addEventListener("click", (e) => {
-          const prop = btn.dataset.prop; const val = btn.dataset.val;
-          currProps[prop] = isNaN(val) || ["transparent", "solid", "dashed", "dotted", "left", "center", "right", "sharp", "round", "none", "bullet", "number"].includes(val) ? val : Number(val);
+          const prop = btn.dataset.prop;
+          const val = btn.dataset.val;
+          currProps[prop] =
+            isNaN(val) ||
+            [
+              "transparent",
+              "solid",
+              "dashed",
+              "dotted",
+              "left",
+              "center",
+              "right",
+              "sharp",
+              "round",
+              "none",
+              "bullet",
+              "number",
+            ].includes(val)
+              ? val
+              : Number(val);
 
           // 當切換為項目符號或數字列表時，自動將對齊改為靠左
           if (prop === "listType" && val !== "none") {
             currProps.textAlign = "left";
             updatePropUI("textAlign", "left");
-            if (selectedElementIndex !== -1) window.elements[selectedElementIndex].textAlign = "left";
+            if (selectedElementIndex !== -1)
+              window.elements[selectedElementIndex].textAlign = "left";
           }
 
           // 記憶目前工具的屬性設定
@@ -1236,23 +1673,39 @@
             if (prop === "textAlign") textInput.style.textAlign = val;
             if (prop === "strokeColor") textInput.style.color = val;
             if (prop === "listType") {
-              const stripped = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n');
+              const stripped = textInput.value
+                .split("\n")
+                .map((l) => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1"))
+                .join("\n");
               const levelCounters = {};
-              textInput.value = stripped.split('\n').map((line) => {
-                const indent = (line.match(/^\s*/) || [""])[0]; const level = indent.length; const clean = line.substring(indent.length);
-                if (val === "none") return line;
-                if (val === "bullet") { const b = ["•", "◦", "▪", "▫"]; return indent + (b[(level / 2) % b.length] || "•") + " " + clean; }
-                levelCounters[level] = (levelCounters[level] || 0) + 1;
-                Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
-                return indent + levelCounters[level] + ". " + clean;
-              }).join('\n');
+              textInput.value = stripped
+                .split("\n")
+                .map((line) => {
+                  const indent = (line.match(/^\s*/) || [""])[0];
+                  const level = indent.length;
+                  const clean = line.substring(indent.length);
+                  if (val === "none") return line;
+                  if (val === "bullet") {
+                    const b = ["•", "◦", "▪", "▫"];
+                    return (
+                      indent + (b[(level / 2) % b.length] || "•") + " " + clean
+                    );
+                  }
+                  levelCounters[level] = (levelCounters[level] || 0) + 1;
+                  Object.keys(levelCounters).forEach((k) => {
+                    if (parseInt(k) > level) delete levelCounters[k];
+                  });
+                  return indent + levelCounters[level] + ". " + clean;
+                })
+                .join("\n");
             }
             textInput.focus();
           }
 
           if (selectedElementIndex !== -1) {
             window.elements[selectedElementIndex][prop] = currProps[prop];
-            render(); saveHistory();
+            render();
+            saveHistory();
           }
         });
       });
@@ -1285,12 +1738,16 @@
       };
 
       function pointInPolygon(point, vs) {
-        let x = point.x, y = point.y;
+        let x = point.x,
+          y = point.y;
         let inside = false;
         for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-          let xi = vs[i].x, yi = vs[i].y;
-          let xj = vs[j].x, yj = vs[j].y;
-          let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+          let xi = vs[i].x,
+            yi = vs[i].y;
+          let xj = vs[j].x,
+            yj = vs[j].y;
+          let intersect =
+            yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
           if (intersect) inside = !inside;
         }
         return inside;
@@ -1300,20 +1757,22 @@
         // 點擊橡皮擦時，若有選取物件則直接刪除，並保持在選取工具狀態
         if (tool === "eraser") {
           if (selectedGroup.length > 0) {
-            selectedGroup.sort((a, b) => b - a).forEach(idx => window.elements.splice(idx, 1));
+            selectedGroup
+              .sort((a, b) => b - a)
+              .forEach((idx) => window.elements.splice(idx, 1));
             selectedGroup = [];
             selectedElementIndex = -1;
             render();
             saveHistory();
             updatePropertiesPanel();
-            tool = "select"; 
+            tool = "select";
           } else if (selectedElementIndex !== -1) {
             window.elements.splice(selectedElementIndex, 1);
             selectedElementIndex = -1;
             render();
             saveHistory();
             updatePropertiesPanel();
-            tool = "select"; 
+            tool = "select";
           }
         }
 
@@ -1330,16 +1789,38 @@
         // 載入工具記憶的屬性
         if (toolPropsMemory[tool]) {
           const mem = toolPropsMemory[tool];
-          if (mem.strokeColor !== undefined) { currProps.strokeColor = mem.strokeColor; updatePropUI("strokeColor", mem.strokeColor); }
-          if (mem.backgroundColor !== undefined) { currProps.backgroundColor = mem.backgroundColor; updatePropUI("backgroundColor", mem.backgroundColor); }
-          if (mem.strokeWidth !== undefined) { currProps.strokeWidth = mem.strokeWidth; updatePropUI("strokeWidth", mem.strokeWidth); }
-          if (mem.strokeStyle !== undefined) { currProps.strokeStyle = mem.strokeStyle; updatePropUI("strokeStyle", mem.strokeStyle); }
-          if (mem.edges !== undefined) { currProps.edges = mem.edges; updatePropUI("edges", mem.edges); }
-          if (mem.textAlign !== undefined) { currProps.textAlign = mem.textAlign; updatePropUI("textAlign", mem.textAlign); }
-          if (mem.listType !== undefined) { currProps.listType = mem.listType; updatePropUI("listType", mem.listType); }
-          if (mem.fontSize !== undefined) { 
-            currProps.fontSize = mem.fontSize; 
-            document.getElementById("font-size-display").textContent = mem.fontSize;
+          if (mem.strokeColor !== undefined) {
+            currProps.strokeColor = mem.strokeColor;
+            updatePropUI("strokeColor", mem.strokeColor);
+          }
+          if (mem.backgroundColor !== undefined) {
+            currProps.backgroundColor = mem.backgroundColor;
+            updatePropUI("backgroundColor", mem.backgroundColor);
+          }
+          if (mem.strokeWidth !== undefined) {
+            currProps.strokeWidth = mem.strokeWidth;
+            updatePropUI("strokeWidth", mem.strokeWidth);
+          }
+          if (mem.strokeStyle !== undefined) {
+            currProps.strokeStyle = mem.strokeStyle;
+            updatePropUI("strokeStyle", mem.strokeStyle);
+          }
+          if (mem.edges !== undefined) {
+            currProps.edges = mem.edges;
+            updatePropUI("edges", mem.edges);
+          }
+          if (mem.textAlign !== undefined) {
+            currProps.textAlign = mem.textAlign;
+            updatePropUI("textAlign", mem.textAlign);
+          }
+          if (mem.listType !== undefined) {
+            currProps.listType = mem.listType;
+            updatePropUI("listType", mem.listType);
+          }
+          if (mem.fontSize !== undefined) {
+            currProps.fontSize = mem.fontSize;
+            document.getElementById("font-size-display").textContent =
+              mem.fontSize;
           }
         }
 
@@ -1405,16 +1886,16 @@
         };
         if (keyMap[e.key]) setTool(keyMap[e.key]);
 
-        // 線條粗細快速鍵 (Q: 最細, W: 中等) 
+        // 線條粗細快速鍵 (Q: 最細, W: 中等)
         if (["q", "w", "Q", "W"].includes(e.key)) {
           let width = 2;
-          
+
           // 如果目前是螢光筆，或選取的是螢光筆物件，採用較粗的級距
           let activeTool = currentTool;
           if (selectedElementIndex !== -1) {
             activeTool = window.elements[selectedElementIndex].type;
           }
-          
+
           if (activeTool === "highlighter") {
             width = 12;
             if (e.key.toLowerCase() === "w") width = 24;
@@ -1435,7 +1916,9 @@
             render();
             saveHistory();
           } else if (selectedGroup.length > 0) {
-            selectedGroup.forEach(idx => window.elements[idx].strokeWidth = width);
+            selectedGroup.forEach(
+              (idx) => (window.elements[idx].strokeWidth = width),
+            );
             render();
             saveHistory();
           }
@@ -1464,7 +1947,9 @@
             render();
             saveHistory();
           } else if (selectedGroup.length > 0) {
-            selectedGroup.forEach(idx => window.elements[idx].strokeColor = color);
+            selectedGroup.forEach(
+              (idx) => (window.elements[idx].strokeColor = color),
+            );
             render();
             saveHistory();
           }
@@ -1473,9 +1958,11 @@
 
         if (e.key === "Delete" || e.key === "Backspace") {
           if (selectedGroup.length > 0) {
-            selectedGroup.sort((a, b) => b - a).forEach(idx => {
-              window.elements.splice(idx, 1);
-            });
+            selectedGroup
+              .sort((a, b) => b - a)
+              .forEach((idx) => {
+                window.elements.splice(idx, 1);
+              });
             selectedGroup = [];
             selectedElementIndex = -1;
             render();
@@ -1491,8 +1978,7 @@
         }
       });
 
-      window.addEventListener("keyup", (e) => {
-      });
+      window.addEventListener("keyup", (e) => {});
 
       window.addEventListener("paste", (e) => {
         if (document.activeElement === textInput) return;
@@ -1511,12 +1997,13 @@
             reader.onload = function (event) {
               const img = new Image();
               img.onload = function () {
-                let w = img.width, h = img.height;
+                let w = img.width,
+                  h = img.height;
 
                 // 保持原圖解析度，但將「顯示尺寸」調整為當前可見畫面的 70%
                 const maxVisibleW = (canvas.width * 0.7) / scale;
                 const maxVisibleH = (canvas.height * 0.7) / scale;
-                
+
                 if (w > maxVisibleW || h > maxVisibleH) {
                   const ratio = Math.min(maxVisibleW / w, maxVisibleH / h);
                   w = w * ratio;
@@ -1547,7 +2034,9 @@
         }
 
         if (!hasImage) {
-          const text = (e.clipboardData || window.clipboardData).getData("text");
+          const text = (e.clipboardData || window.clipboardData).getData(
+            "text",
+          );
           if (text && text.trim() !== "") {
             window.elements.push({
               type: "text",
@@ -1577,7 +2066,12 @@
 
       function getElementBounds(el) {
         let minX, minY, maxX, maxY;
-        if (el.type === "pencil" || el.type === "highlighter" || el.type === "line" || el.type === "arrow") {
+        if (
+          el.type === "pencil" ||
+          el.type === "highlighter" ||
+          el.type === "line" ||
+          el.type === "arrow"
+        ) {
           if (!el.points || el.points.length === 0) return null;
           minX = Math.min(...el.points.map((p) => p.x));
           minY = Math.min(...el.points.map((p) => p.y));
@@ -1590,7 +2084,7 @@
           ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
           const lines = el.text.split("\n");
           let maxWidth = 0;
-          const levelCounters = {}; 
+          const levelCounters = {};
 
           lines.forEach((line, i) => {
             const indent = (line.match(/^\s*/) || [""])[0];
@@ -1599,20 +2093,35 @@
             let prefix = "";
             if (listType === "bullet") {
               const bullets = ["•", "◦", "▪", "▫"];
-              prefix = indent + (bullets[(level / 2) % bullets.length] || "•") + " ";
+              prefix =
+                indent + (bullets[(level / 2) % bullets.length] || "•") + " ";
             } else if (listType === "number") {
               levelCounters[level] = (levelCounters[level] || 0) + 1;
-              Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
+              Object.keys(levelCounters).forEach((k) => {
+                if (parseInt(k) > level) delete levelCounters[k];
+              });
               prefix = indent + levelCounters[level] + ". ";
-            } else { prefix = line; }
-            const w = ctx.measureText(prefix + (listType !== "none" ? cleanLine : "")).width;
+            } else {
+              prefix = line;
+            }
+            const w = ctx.measureText(
+              prefix + (listType !== "none" ? cleanLine : ""),
+            ).width;
             if (w > maxWidth) maxWidth = w;
           });
-          const h = (fs * 1.2) * lines.length;
-          if (align === "center") { minX = el.x - maxWidth/2; maxX = el.x + maxWidth/2; }
-          else if (align === "right") { minX = el.x - maxWidth; maxX = el.x; }
-          else { minX = el.x; maxX = el.x + maxWidth; }
-          minY = el.y; maxY = el.y + h;
+          const h = fs * 1.2 * lines.length;
+          if (align === "center") {
+            minX = el.x - maxWidth / 2;
+            maxX = el.x + maxWidth / 2;
+          } else if (align === "right") {
+            minX = el.x - maxWidth;
+            maxX = el.x;
+          } else {
+            minX = el.x;
+            maxX = el.x + maxWidth;
+          }
+          minY = el.y;
+          maxY = el.y + h;
         } else {
           minX = Math.min(el.x, el.x + el.w);
           minY = Math.min(el.y, el.y + el.h);
@@ -1653,7 +2162,7 @@
 
       // 支援滑鼠、觸控與觸控筆
       canvas.addEventListener("pointerdown", (e) => {
-        if (e.pointerId) canvas.setPointerCapture(e.pointerId); 
+        if (e.pointerId) canvas.setPointerCapture(e.pointerId);
         const pos = getMousePos(e);
 
         if (isSpacePressed || e.button === 1 || currentTool === "hand") {
@@ -1672,7 +2181,8 @@
               const el = window.elements[selectedGroup[i]];
               const bounds = getElementBounds(el);
               if (bounds) {
-                let mx = pos.x, my = pos.y;
+                let mx = pos.x,
+                  my = pos.y;
                 if (el.angle) {
                   const cx = (bounds.minX + bounds.maxX) / 2;
                   const cy = (bounds.minY + bounds.maxY) / 2;
@@ -1685,7 +2195,9 @@
                 const delX = bounds.maxX + selectPadding;
                 const delY = bounds.minY - selectPadding;
                 if (Math.hypot(mx - delX, my - delY) <= 12) {
-                  selectedGroup.sort((a, b) => b - a).forEach(idx => window.elements.splice(idx, 1));
+                  selectedGroup
+                    .sort((a, b) => b - a)
+                    .forEach((idx) => window.elements.splice(idx, 1));
                   selectedGroup = [];
                   selectedElementIndex = -1;
                   render();
@@ -1805,7 +2317,7 @@
         } else if (currentTool === "laser") {
           isLaserActive = true;
           laserTrail = [{ x: pos.x, y: pos.y, time: Date.now() }];
-          updateLaser(); 
+          updateLaser();
         } else if (currentTool === "lasso") {
           selectedElementIndex = -1;
           selectedGroup = [];
@@ -1861,9 +2373,13 @@
         if (isDraggingGroup && selectedGroup.length > 0) {
           let dx = pos.x - dragOffsetX;
           let dy = pos.y - dragOffsetY;
-          selectedGroup.forEach(idx => {
+          selectedGroup.forEach((idx) => {
             const el = window.elements[idx];
-            if (el.points) el.points.forEach((p) => { p.x += dx; p.y += dy; });
+            if (el.points)
+              el.points.forEach((p) => {
+                p.x += dx;
+                p.y += dy;
+              });
             el.x += dx;
             el.y += dy;
           });
@@ -1923,7 +2439,7 @@
 
               const rotX = (bounds.minX + bounds.maxX) / 2;
               const rotY = bounds.minY - selectPadding - 25;
-              
+
               const delX = bounds.maxX + selectPadding;
               const delY = bounds.minY - selectPadding;
 
@@ -2011,9 +2527,9 @@
         currentElement.h = pos.y - startY;
         if (currentTool === "pencil" || currentTool === "highlighter") {
           // 將座標精簡到小數點第一位，大幅減少 JSON 檔案體積
-          currentElement.points.push({ 
-            x: Math.round(pos.x * 10) / 10, 
-            y: Math.round(pos.y * 10) / 10 
+          currentElement.points.push({
+            x: Math.round(pos.x * 10) / 10,
+            y: Math.round(pos.y * 10) / 10,
           });
         } else if (currentTool === "line" || currentTool === "arrow") {
           let targetX = pos.x;
@@ -2037,10 +2553,10 @@
       });
 
       canvas.addEventListener("pointerup", (e) => {
-        if (e.pointerId) canvas.releasePointerCapture(e.pointerId); 
+        if (e.pointerId) canvas.releasePointerCapture(e.pointerId);
         if (isPanning) {
           isPanning = false;
-          saveToLocalStorage(); 
+          saveToLocalStorage();
           if (!isSpacePressed) setTool(currentTool);
           return;
         }
@@ -2067,7 +2583,7 @@
         }
 
         if (currentTool === "eraser") {
-          shouldSave = true; 
+          shouldSave = true;
         }
 
         // 縮放結束時，確保寬高正規化
@@ -2089,7 +2605,7 @@
 
         if (isDrawing) {
           isDrawing = false;
-          
+
           if (currentTool === "lasso") {
             if (lassoPath.length > 2) {
               selectedGroup = [];
@@ -2098,7 +2614,7 @@
                 if (bounds) {
                   const cx = (bounds.minX + bounds.maxX) / 2;
                   const cy = (bounds.minY + bounds.maxY) / 2;
-                  if (pointInPolygon({x: cx, y: cy}, lassoPath)) {
+                  if (pointInPolygon({ x: cx, y: cy }, lassoPath)) {
                     selectedGroup.push(index);
                   }
                 }
@@ -2116,7 +2632,8 @@
 
           let added = false;
           if (
-            (["pencil", "highlighter"].includes(currentTool) && currentElement.points.length > 1) ||
+            (["pencil", "highlighter"].includes(currentTool) &&
+              currentElement.points.length > 1) ||
             (!["pencil", "highlighter"].includes(currentTool) &&
               (Math.abs(currentElement.w) > 2 ||
                 Math.abs(currentElement.h) > 2))
@@ -2140,7 +2657,7 @@
           currentElement = null;
 
           if (added) {
-            selectedElementIndex = window.elements.length - 1;
+            selectedElementIndex = -1; // 將原本的 window.elements.length - 1 改為 -1，取消自動選取
             render();
             updatePropertiesPanel();
           } else {
@@ -2152,139 +2669,212 @@
       });
 
       // 文字工具 (支援多層級縮排與自動重新計數)
-      function startTextEdit(clientX, clientY, canvasX, canvasY, initialText = "", editingIndex = -1) {
+      function startTextEdit(
+        clientX,
+        clientY,
+        canvasX,
+        canvasY,
+        initialText = "",
+        editingIndex = -1,
+      ) {
         textInput.style.display = "block";
-        textInput.style.left = clientX + "px"; textInput.style.top = (clientY - 12) + "px";
+        textInput.style.left = clientX + "px";
+        textInput.style.top = clientY - 12 + "px";
 
-        const fs = (editingIndex !== -1) ? (window.elements[editingIndex].fontSize || 24) : currProps.fontSize;
-        const align = (editingIndex !== -1) ? (window.elements[editingIndex].textAlign || "center") : currProps.textAlign;
-        const listType = (editingIndex !== -1) ? (window.elements[editingIndex].listType || "none") : currProps.listType;
+        const fs =
+          editingIndex !== -1
+            ? window.elements[editingIndex].fontSize || 24
+            : currProps.fontSize;
+        const align =
+          editingIndex !== -1
+            ? window.elements[editingIndex].textAlign || "center"
+            : currProps.textAlign;
+        const listType =
+          editingIndex !== -1
+            ? window.elements[editingIndex].listType || "none"
+            : currProps.listType;
 
-        textInput.style.fontSize = fs + "px"; textInput.style.textAlign = align;
-        textInput.style.border = "2px dashed #6965db"; textInput.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
+        textInput.style.fontSize = fs + "px";
+        textInput.style.textAlign = align;
+        textInput.style.border = "2px dashed #6965db";
+        textInput.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
 
         const getDisplayWithPrefixes = (txt) => {
           if (listType === "none") return txt;
           const levelCounters = {};
-          return txt.split('\n').map((line, i) => {
-            const indent = (line.match(/^\s*/) || [""])[0];
-            const level = indent.length;
-            const clean = line.substring(indent.length);
-            let prefix = "";
-            if (listType === "bullet") {
-              const bullets = ["•", "◦", "▪", "▫"];
-              prefix = (bullets[(level / 2) % bullets.length] || "•") + " ";
-            } else {
-              levelCounters[level] = (levelCounters[level] || 0) + 1;
-              Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
-              prefix = levelCounters[level] + ". ";
-            }
-            return indent + prefix + clean;
-          }).join('\n');
+          return txt
+            .split("\n")
+            .map((line, i) => {
+              const indent = (line.match(/^\s*/) || [""])[0];
+              const level = indent.length;
+              const clean = line.substring(indent.length);
+              let prefix = "";
+              if (listType === "bullet") {
+                const bullets = ["•", "◦", "▪", "▫"];
+                prefix = (bullets[(level / 2) % bullets.length] || "•") + " ";
+              } else {
+                levelCounters[level] = (levelCounters[level] || 0) + 1;
+                Object.keys(levelCounters).forEach((k) => {
+                  if (parseInt(k) > level) delete levelCounters[k];
+                });
+                prefix = levelCounters[level] + ". ";
+              }
+              return indent + prefix + clean;
+            })
+            .join("\n");
         };
 
-        textInput.value = getDisplayWithPrefixes(initialText) || (listType === "bullet" ? "• " : (listType === "number" ? "1. " : ""));
-        
+        textInput.value =
+          getDisplayWithPrefixes(initialText) ||
+          (listType === "bullet" ? "• " : listType === "number" ? "1. " : "");
+
         textInput.onkeydown = (e) => {
           const start = textInput.selectionStart;
-          const end = textInput.selectionEnd; 
+          const end = textInput.selectionEnd;
           const val = textInput.value;
-          const lineStart = val.lastIndexOf('\n', start - 1) + 1;
-          const currentLine = val.substring(lineStart, val.indexOf('\n', start) === -1 ? val.length : val.indexOf('\n', start));
+          const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+          const currentLine = val.substring(
+            lineStart,
+            val.indexOf("\n", start) === -1
+              ? val.length
+              : val.indexOf("\n", start),
+          );
 
           if (e.key === "Tab") {
             e.preventDefault();
             if (!e.shiftKey) {
-              textInput.value = val.substring(0, lineStart) + "  " + val.substring(lineStart);
+              textInput.value =
+                val.substring(0, lineStart) + "  " + val.substring(lineStart);
               textInput.selectionStart = textInput.selectionEnd = start + 2;
             } else {
               const spacesMatch = currentLine.match(/^\s{1,2}/);
               if (spacesMatch) {
-                textInput.value = val.substring(0, lineStart) + val.substring(lineStart + spacesMatch[0].length);
-                textInput.selectionStart = textInput.selectionEnd = Math.max(lineStart, start - spacesMatch[0].length);
+                textInput.value =
+                  val.substring(0, lineStart) +
+                  val.substring(lineStart + spacesMatch[0].length);
+                textInput.selectionStart = textInput.selectionEnd = Math.max(
+                  lineStart,
+                  start - spacesMatch[0].length,
+                );
               }
             }
-            const stripped = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n');
+            const stripped = textInput.value
+              .split("\n")
+              .map((l) => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1"))
+              .join("\n");
             textInput.value = getDisplayWithPrefixes(stripped);
-            textInput.dispatchEvent(new Event('input'));
+            textInput.dispatchEvent(new Event("input"));
           }
 
           if (e.key === "Enter") {
             e.preventDefault();
-            const activeListType = (editingIndex !== -1) ? (window.elements[editingIndex].listType || "none") : currProps.listType;
+            const activeListType =
+              editingIndex !== -1
+                ? window.elements[editingIndex].listType || "none"
+                : currProps.listType;
             const prefixMatch = currentLine.match(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/);
             const prefix = prefixMatch ? prefixMatch[0] : "";
             const content = currentLine.substring(prefix.length).trim();
 
             if (activeListType !== "none" && content === "" && prefix !== "") {
-              textInput.value = val.substring(0, lineStart) + "\n" + val.substring(end);
+              textInput.value =
+                val.substring(0, lineStart) + "\n" + val.substring(end);
               textInput.selectionStart = textInput.selectionEnd = lineStart + 1;
             } else {
               const indent = (currentLine.match(/^\s*/) || [""])[0];
-              const nextBase = val.substring(0, start) + "\n" + indent + val.substring(end);
+              const nextBase =
+                val.substring(0, start) + "\n" + indent + val.substring(end);
               if (activeListType === "none") {
                 textInput.value = nextBase;
-                textInput.selectionStart = textInput.selectionEnd = start + 1 + indent.length;
+                textInput.selectionStart = textInput.selectionEnd =
+                  start + 1 + indent.length;
               } else {
-                const stripped = nextBase.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n');
+                const stripped = nextBase
+                  .split("\n")
+                  .map((l) => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1"))
+                  .join("\n");
                 const levelCounters = {};
-                const final = stripped.split('\n').map((line) => {
-                  const lIndent = (line.match(/^\s*/) || [""])[0];
-                  const level = lIndent.length;
-                  const clean = line.substring(lIndent.length);
-                  let lPrefix = "";
-                  if (activeListType === "bullet") {
-                    const b = ["•", "◦", "▪", "▫"];
-                    lPrefix = (b[(level / 2) % b.length] || "•") + " ";
-                  } else if (activeListType === "number") {
-                    levelCounters[level] = (levelCounters[level] || 0) + 1;
-                    Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
-                    lPrefix = levelCounters[level] + ". ";
-                  }
-                  return lIndent + lPrefix + clean;
-                }).join('\n');
+                const final = stripped
+                  .split("\n")
+                  .map((line) => {
+                    const lIndent = (line.match(/^\s*/) || [""])[0];
+                    const level = lIndent.length;
+                    const clean = line.substring(lIndent.length);
+                    let lPrefix = "";
+                    if (activeListType === "bullet") {
+                      const b = ["•", "◦", "▪", "▫"];
+                      lPrefix = (b[(level / 2) % b.length] || "•") + " ";
+                    } else if (activeListType === "number") {
+                      levelCounters[level] = (levelCounters[level] || 0) + 1;
+                      Object.keys(levelCounters).forEach((k) => {
+                        if (parseInt(k) > level) delete levelCounters[k];
+                      });
+                      lPrefix = levelCounters[level] + ". ";
+                    }
+                    return lIndent + lPrefix + clean;
+                  })
+                  .join("\n");
                 textInput.value = final;
-                const newLines = final.split('\n');
-                const lineIdx = val.substring(0, start).split('\n').length;
+                const newLines = final.split("\n");
+                const lineIdx = val.substring(0, start).split("\n").length;
                 let newPos = 0;
-                for(let i=0; i<lineIdx; i++) newPos += newLines[i].length + 1;
-                const nextFullPrefix = (newLines[lineIdx].match(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/) || [""])[0];
-                textInput.selectionStart = textInput.selectionEnd = newPos + nextFullPrefix.length;
+                for (let i = 0; i < lineIdx; i++)
+                  newPos += newLines[i].length + 1;
+                const nextFullPrefix = (newLines[lineIdx].match(
+                  /^(\s*)(•|◦|▪|▫|\d+\.)\s?/,
+                ) || [""])[0];
+                textInput.selectionStart = textInput.selectionEnd =
+                  newPos + nextFullPrefix.length;
               }
             }
-            textInput.dispatchEvent(new Event('input'));
+            textInput.dispatchEvent(new Event("input"));
           }
         };
 
         setTimeout(() => {
           textInput.focus();
           textInput.style.height = textInput.scrollHeight + "px";
-          textInput.style.width = (textInput.scrollWidth + 30) + "px";
+          textInput.style.width = textInput.scrollWidth + 30 + "px";
         }, 10);
 
         textInput.onblur = () => {
           textInput.style.display = "none";
           // 離開編輯時動態確認目前的清單類型
-          const finalListType = (editingIndex !== -1) ? (window.elements[editingIndex].listType || "none") : currProps.listType;
-          
-          let finalVal = textInput.value.split('\n').map(l => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1")).join('\n').trim();
+          const finalListType =
+            editingIndex !== -1
+              ? window.elements[editingIndex].listType || "none"
+              : currProps.listType;
+
+          let finalVal = textInput.value
+            .split("\n")
+            .map((l) => l.replace(/^(\s*)(•|◦|▪|▫|\d+\.)\s?/, "$1"))
+            .join("\n")
+            .trim();
           if (editingIndex !== -1) {
-            if (window.elements[editingIndex]) delete window.elements[editingIndex].isEditing; 
-            
+            if (window.elements[editingIndex])
+              delete window.elements[editingIndex].isEditing;
+
             if (finalVal === "") window.elements.splice(editingIndex, 1);
             else {
               window.elements[editingIndex].text = finalVal;
               window.elements[editingIndex].listType = finalListType;
             }
           } else if (finalVal !== "") {
-            window.elements.push({ 
-              type: "text", text: finalVal, x: canvasX, y: canvasY, 
-              strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, 
-              textAlign: currProps.textAlign, listType: finalListType 
+            window.elements.push({
+              type: "text",
+              text: finalVal,
+              x: canvasX,
+              y: canvasY,
+              strokeColor: currProps.strokeColor,
+              fontSize: currProps.fontSize,
+              textAlign: currProps.textAlign,
+              listType: finalListType,
             });
-            selectedElementIndex = window.elements.length - 1;
+            selectedElementIndex = -1; // 將原本的 window.elements.length - 1 改為 -1，取消自動選取
           }
-          render(); saveHistory(); setTool("select");
+          render();
+          saveHistory();
+          setTool("select");
         };
       }
 
@@ -2297,8 +2887,8 @@
             const bounds = getElementBounds(el);
             const screenX = bounds.minX * scale + offsetX;
             const screenY = bounds.minY * scale + offsetY;
-            
-            el.isEditing = true; 
+
+            el.isEditing = true;
             startTextEdit(screenX, screenY, el.x, el.y, el.text, i);
             render();
             return;
@@ -2350,7 +2940,7 @@
 
         if (el.strokeStyle === "dashed") ctx.setLineDash([10, 10]);
         else if (el.strokeStyle === "dotted") ctx.setLineDash([2, 6]);
-        else ctx.setLineDash([]); 
+        else ctx.setLineDash([]);
       }
 
       function fillAndStroke(ctx, el) {
@@ -2478,10 +3068,12 @@
             const align = el.textAlign || "center";
             const listType = el.listType || "none";
             ctx.font = `${fs}px 'Caveat', 'Noto Sans TC', sans-serif`;
-            ctx.fillStyle = el.strokeColor || "#1e1e1e"; ctx.textBaseline = "top"; ctx.textAlign = align;
+            ctx.fillStyle = el.strokeColor || "#1e1e1e";
+            ctx.textBaseline = "top";
+            ctx.textAlign = align;
             const lines = el.text.split("\n");
             const lineHeight = fs * 1.2;
-            const levelCounters = {}; 
+            const levelCounters = {};
 
             lines.forEach((line, i) => {
               const indent = (line.match(/^\s*/) || [""])[0];
@@ -2490,13 +3082,22 @@
               let prefix = "";
               if (listType === "bullet") {
                 const bullets = ["•", "◦", "▪", "▫"];
-                prefix = indent + (bullets[(level / 2) % bullets.length] || "•") + " ";
+                prefix =
+                  indent + (bullets[(level / 2) % bullets.length] || "•") + " ";
               } else if (listType === "number") {
                 levelCounters[level] = (levelCounters[level] || 0) + 1;
-                Object.keys(levelCounters).forEach(k => { if (parseInt(k) > level) delete levelCounters[k]; });
+                Object.keys(levelCounters).forEach((k) => {
+                  if (parseInt(k) > level) delete levelCounters[k];
+                });
                 prefix = indent + levelCounters[level] + ". ";
-              } else { prefix = line; }
-              ctx.fillText(prefix + (listType !== "none" ? cleanLine : ""), el.x, el.y + i * lineHeight);
+              } else {
+                prefix = line;
+              }
+              ctx.fillText(
+                prefix + (listType !== "none" ? cleanLine : ""),
+                el.x,
+                el.y + i * lineHeight,
+              );
             });
             break;
           case "image":
@@ -2534,7 +3135,7 @@
         ctx.stroke();
         ctx.restore();
       }
-      
+
       function drawSelectionBox(ctx, el) {
         const bounds = getElementBounds(el);
         if (!bounds) return;
@@ -2617,10 +3218,10 @@
         drawGrid(ctx, canvas.width, canvas.height);
         ctx.save();
         ctx.translate(offsetX, offsetY);
-        ctx.scale(scale, scale); 
+        ctx.scale(scale, scale);
 
         window.elements.forEach((el, index) => {
-          if (el.isEditing) return; 
+          if (el.isEditing) return;
           drawElement(ctx, el);
           if (index === selectedElementIndex || selectedGroup.includes(index)) {
             drawSelectionBox(ctx, el);
@@ -2697,66 +3298,76 @@
         link.click();
       });
 
-      // 匯出專案存檔 
-      document.getElementById("save-project-btn").addEventListener("click", () => {
-        const data = {
-          elements: window.elements.map(el => {
-            if (el.type === 'image') {
-              const { img, ...rest } = el; 
-              return rest;
-            }
-            return el;
-          }),
-          offsetX, offsetY, scale
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = `老人的白板專案-${new Date().getTime()}.json`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-      });
+      // 匯出專案存檔
+      document
+        .getElementById("save-project-btn")
+        .addEventListener("click", () => {
+          const data = {
+            elements: window.elements.map((el) => {
+              if (el.type === "image") {
+                const { img, ...rest } = el;
+                return rest;
+              }
+              return el;
+            }),
+            offsetX,
+            offsetY,
+            scale,
+          };
+          const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.download = `老人的白板專案-${new Date().getTime()}.json`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+        });
 
       // 點擊載入專案按鈕
-      document.getElementById("load-project-btn").addEventListener("click", () => {
-        document.getElementById("project-input").click();
-      });
+      document
+        .getElementById("load-project-btn")
+        .addEventListener("click", () => {
+          document.getElementById("project-input").click();
+        });
 
       // 處理專案檔案讀取與狀態還原
-      document.getElementById("project-input").addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const data = JSON.parse(event.target.result);
-            window.elements = data.elements || [];
-            offsetX = data.offsetX || 0;
-            offsetY = data.offsetY || 0;
-            scale = data.scale || 1;
-            
-            // 恢復圖片物件實體
-            window.elements.forEach((el) => {
-              if (el.type === "image" && el.dataUrl) {
-                const img = new Image();
-                img.onload = () => render();
-                img.src = el.dataUrl;
-                el.img = img;
-              }
-            });
-            
-            selectedElementIndex = -1;
-            render();
-            saveHistory(); 
-            showToast("專案已成功載入");
-          } catch (err) {
-            showToast("載入失敗：檔案格式錯誤");
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = ""; 
-      });
+      document
+        .getElementById("project-input")
+        .addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const data = JSON.parse(event.target.result);
+              window.elements = data.elements || [];
+              offsetX = data.offsetX || 0;
+              offsetY = data.offsetY || 0;
+              scale = data.scale || 1;
+
+              // 恢復圖片物件實體
+              window.elements.forEach((el) => {
+                if (el.type === "image" && el.dataUrl) {
+                  const img = new Image();
+                  img.onload = () => render();
+                  img.src = el.dataUrl;
+                  el.img = img;
+                }
+              });
+
+              selectedElementIndex = -1;
+              render();
+              saveHistory();
+              showToast("專案已成功載入");
+            } catch (err) {
+              showToast("載入失敗：檔案格式錯誤");
+            }
+          };
+          reader.readAsText(file);
+          e.target.value = "";
+        });
 
       // 實作 Mac 用戶按住 Command (metaKey) 的滑鼠滾輪縮放，以及一般的滾輪平移
       canvas.addEventListener(
@@ -2795,7 +3406,7 @@
       let initialPinchDistance = null;
       let initialScale = 1;
       let lastPanCenter = null;
-      
+
       let longPressTimer = null;
       let touchStartX = 0;
       let touchStartY = 0;
@@ -2819,85 +3430,108 @@
         menuPasteLocation = { x: e.clientX, y: e.clientY };
       });
 
-      canvas.addEventListener("touchstart", (e) => {
-        if (e.touches.length === 2) {
-          if (longPressTimer) clearTimeout(longPressTimer);
-          e.preventDefault(); 
-          const t1 = e.touches[0];
-          const t2 = e.touches[1];
-          initialPinchDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-          initialScale = scale;
-          lastPanCenter = {
-            x: (t1.clientX + t2.clientX) / 2,
-            y: (t1.clientY + t2.clientY) / 2
-          };
-          
-          isDrawing = false;
-          if (currentElement && selectedElementIndex === -1) {
-            currentElement = null;
-            render();
-          }
-        } else if (e.touches.length === 1) {
-          e.preventDefault();
-          // 單指操作：啟動長按計時器 (600ms)
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-          
-          longPressTimer = setTimeout(() => {
+      canvas.addEventListener(
+        "touchstart",
+        (e) => {
+          if (e.touches.length === 2) {
+            if (longPressTimer) clearTimeout(longPressTimer);
+            e.preventDefault();
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            initialPinchDistance = Math.hypot(
+              t2.clientX - t1.clientX,
+              t2.clientY - t1.clientY,
+            );
+            initialScale = scale;
+            lastPanCenter = {
+              x: (t1.clientX + t2.clientX) / 2,
+              y: (t1.clientY + t2.clientY) / 2,
+            };
+
             isDrawing = false;
-            // 由於長按觸發，如果已經產生了繪圖點，將其清除
             if (currentElement && selectedElementIndex === -1) {
               currentElement = null;
               render();
             }
-            contextMenu.style.left = touchStartX + "px";
-            contextMenu.style.top = touchStartY + "px";
-            contextMenu.classList.remove("hidden");
-            menuPasteLocation = { x: touchStartX, y: touchStartY };
-            
-            // 讓手機輕觸回饋 (如果支援)
-            if (navigator.vibrate) navigator.vibrate(50);
-          }, 600);
-        }
-      }, { passive: false });
+          } else if (e.touches.length === 1) {
+            e.preventDefault();
+            // 單指操作：啟動長按計時器 (600ms)
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
 
-      canvas.addEventListener("touchmove", (e) => {
-        if (e.touches.length === 1) {
-           // 若手指移動超過 10px，取消長按
-           if (Math.hypot(e.touches[0].clientX - touchStartX, e.touches[0].clientY - touchStartY) > 10) {
+            longPressTimer = setTimeout(() => {
+              isDrawing = false;
+              // 由於長按觸發，如果已經產生了繪圖點，將其清除
+              if (currentElement && selectedElementIndex === -1) {
+                currentElement = null;
+                render();
+              }
+              contextMenu.style.left = touchStartX + "px";
+              contextMenu.style.top = touchStartY + "px";
+              contextMenu.classList.remove("hidden");
+              menuPasteLocation = { x: touchStartX, y: touchStartY };
+
+              // 讓手機輕觸回饋 (如果支援)
+              if (navigator.vibrate) navigator.vibrate(50);
+            }, 600);
+          }
+        },
+        { passive: false },
+      );
+
+      canvas.addEventListener(
+        "touchmove",
+        (e) => {
+          if (e.touches.length === 1) {
+            // 若手指移動超過 10px，取消長按
+            if (
+              Math.hypot(
+                e.touches[0].clientX - touchStartX,
+                e.touches[0].clientY - touchStartY,
+              ) > 10
+            ) {
               if (longPressTimer) clearTimeout(longPressTimer);
-           }
-        } else if (e.touches.length === 2) {
-          e.preventDefault();
-          const t1 = e.touches[0];
-          const t2 = e.touches[1];
-          const currentDistance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-          const currentCenter = {
-            x: (t1.clientX + t2.clientX) / 2,
-            y: (t1.clientY + t2.clientY) / 2
-          };
-
-          if (lastPanCenter) {
-            offsetX += currentCenter.x - lastPanCenter.x;
-            offsetY += currentCenter.y - lastPanCenter.y;
-          }
-
-          if (initialPinchDistance) {
-            const pinchRatio = currentDistance / initialPinchDistance;
-            const nextScale = initialScale * pinchRatio;
-
-            if (nextScale >= 0.1 && nextScale <= 20) {
-              offsetX = currentCenter.x - (currentCenter.x - offsetX) * (nextScale / scale);
-              offsetY = currentCenter.y - (currentCenter.y - offsetY) * (nextScale / scale);
-              scale = nextScale;
             }
-          }
+          } else if (e.touches.length === 2) {
+            e.preventDefault();
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const currentDistance = Math.hypot(
+              t2.clientX - t1.clientX,
+              t2.clientY - t1.clientY,
+            );
+            const currentCenter = {
+              x: (t1.clientX + t2.clientX) / 2,
+              y: (t1.clientY + t2.clientY) / 2,
+            };
 
-          lastPanCenter = currentCenter;
-          render();
-          saveToLocalStorage();
-        }
-      }, { passive: false });
+            if (lastPanCenter) {
+              offsetX += currentCenter.x - lastPanCenter.x;
+              offsetY += currentCenter.y - lastPanCenter.y;
+            }
+
+            if (initialPinchDistance) {
+              const pinchRatio = currentDistance / initialPinchDistance;
+              const nextScale = initialScale * pinchRatio;
+
+              if (nextScale >= 0.1 && nextScale <= 20) {
+                offsetX =
+                  currentCenter.x -
+                  (currentCenter.x - offsetX) * (nextScale / scale);
+                offsetY =
+                  currentCenter.y -
+                  (currentCenter.y - offsetY) * (nextScale / scale);
+                scale = nextScale;
+              }
+            }
+
+            lastPanCenter = currentCenter;
+            render();
+            saveToLocalStorage();
+          }
+        },
+        { passive: false },
+      );
 
       canvas.addEventListener("touchend", (e) => {
         if (longPressTimer) clearTimeout(longPressTimer);
@@ -2908,83 +3542,113 @@
       });
 
       // 執行選單的貼上功能
-      document.getElementById("menu-paste-btn").addEventListener("click", async () => {
-         contextMenu.classList.add("hidden");
-         try {
+      document
+        .getElementById("menu-paste-btn")
+        .addEventListener("click", async () => {
+          contextMenu.classList.add("hidden");
+          try {
             const items = await navigator.clipboard.read();
             let hasImage = false;
             for (let item of items) {
-               const imageTypes = item.types.filter(type => type.startsWith('image/'));
-               if (imageTypes.length > 0) {
-                  const blob = await item.getType(imageTypes[0]);
-                  const reader = new FileReader();
-                  reader.onload = function(event) {
-                     const img = new Image();
-                     img.onload = function() {
-                        let w = img.width, h = img.height;
-                        const maxVisibleW = (canvas.width * 0.7) / scale;
-                        const maxVisibleH = (canvas.height * 0.7) / scale;
-                        if (w > maxVisibleW || h > maxVisibleH) {
-                          const ratio = Math.min(maxVisibleW / w, maxVisibleH / h);
-                          w = w * ratio; h = h * ratio;
-                        }
-                        window.elements.push({
-                          type: "image", img: img, dataUrl: event.target.result,
-                          x: (menuPasteLocation.x - offsetX) / scale - w / 2,
-                          y: (menuPasteLocation.y - offsetY) / scale - h / 2,
-                          w: w, h: h
-                        });
-                        selectedElementIndex = window.elements.length - 1;
-                        setTool("select"); render(); saveHistory(); showToast("已貼上圖片");
-                     };
-                     img.src = event.target.result;
+              const imageTypes = item.types.filter((type) =>
+                type.startsWith("image/"),
+              );
+              if (imageTypes.length > 0) {
+                const blob = await item.getType(imageTypes[0]);
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                  const img = new Image();
+                  img.onload = function () {
+                    let w = img.width,
+                      h = img.height;
+                    const maxVisibleW = (canvas.width * 0.7) / scale;
+                    const maxVisibleH = (canvas.height * 0.7) / scale;
+                    if (w > maxVisibleW || h > maxVisibleH) {
+                      const ratio = Math.min(maxVisibleW / w, maxVisibleH / h);
+                      w = w * ratio;
+                      h = h * ratio;
+                    }
+                    window.elements.push({
+                      type: "image",
+                      img: img,
+                      dataUrl: event.target.result,
+                      x: (menuPasteLocation.x - offsetX) / scale - w / 2,
+                      y: (menuPasteLocation.y - offsetY) / scale - h / 2,
+                      w: w,
+                      h: h,
+                    });
+                    selectedElementIndex = window.elements.length - 1;
+                    setTool("select");
+                    render();
+                    saveHistory();
+                    showToast("已貼上圖片");
                   };
-                  reader.readAsDataURL(blob);
-                  hasImage = true;
-                  break;
-               }
+                  img.src = event.target.result;
+                };
+                reader.readAsDataURL(blob);
+                hasImage = true;
+                break;
+              }
             }
             if (!hasImage) {
-               // 嘗試讀取文字
-               for (let item of items) {
-                  if (item.types.includes("text/plain")) {
-                     const blob = await item.getType("text/plain");
-                     const text = await blob.text();
-                     if (text && text.trim() !== "") {
-                        window.elements.push({
-                          type: "text", text: text,
-                          x: (menuPasteLocation.x - offsetX) / scale - (text.length * 10) / scale,
-                          y: (menuPasteLocation.y - offsetY) / scale - 12 / scale,
-                          strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, textAlign: currProps.textAlign, listType: currProps.listType || "none"
-                        });
-                        selectedElementIndex = window.elements.length - 1;
-                        setTool("select"); render(); saveHistory(); showToast("已貼上文字");
-                     }
-                     break;
+              // 嘗試讀取文字
+              for (let item of items) {
+                if (item.types.includes("text/plain")) {
+                  const blob = await item.getType("text/plain");
+                  const text = await blob.text();
+                  if (text && text.trim() !== "") {
+                    window.elements.push({
+                      type: "text",
+                      text: text,
+                      x:
+                        (menuPasteLocation.x - offsetX) / scale -
+                        (text.length * 10) / scale,
+                      y: (menuPasteLocation.y - offsetY) / scale - 12 / scale,
+                      strokeColor: currProps.strokeColor,
+                      fontSize: currProps.fontSize,
+                      textAlign: currProps.textAlign,
+                      listType: currProps.listType || "none",
+                    });
+                    selectedElementIndex = window.elements.length - 1;
+                    setTool("select");
+                    render();
+                    saveHistory();
+                    showToast("已貼上文字");
                   }
-               }
+                  break;
+                }
+              }
             }
-         } catch (err) {
+          } catch (err) {
             // 降級方案：若是舊版系統或權限被阻擋，嘗試直接讀取純文字
             try {
-               const text = await navigator.clipboard.readText();
-               if (text && text.trim() !== "") {
-                  window.elements.push({
-                     type: "text", text: text,
-                     x: (menuPasteLocation.x - offsetX) / scale - (text.length * 10) / scale,
-                     y: (menuPasteLocation.y - offsetY) / scale - 12 / scale,
-                     strokeColor: currProps.strokeColor, fontSize: currProps.fontSize, textAlign: currProps.textAlign, listType: currProps.listType || "none"
-                  });
-                  selectedElementIndex = window.elements.length - 1;
-                  setTool("select"); render(); saveHistory(); showToast("已貼上文字");
-               } else {
-                  showToast("無法讀取剪貼簿，請確認瀏覽器允許貼上權限");
-               }
-            } catch(e) {
-               showToast("無法存取剪貼簿，請在裝置設定中允許網站存取");
+              const text = await navigator.clipboard.readText();
+              if (text && text.trim() !== "") {
+                window.elements.push({
+                  type: "text",
+                  text: text,
+                  x:
+                    (menuPasteLocation.x - offsetX) / scale -
+                    (text.length * 10) / scale,
+                  y: (menuPasteLocation.y - offsetY) / scale - 12 / scale,
+                  strokeColor: currProps.strokeColor,
+                  fontSize: currProps.fontSize,
+                  textAlign: currProps.textAlign,
+                  listType: currProps.listType || "none",
+                });
+                selectedElementIndex = window.elements.length - 1;
+                setTool("select");
+                render();
+                saveHistory();
+                showToast("已貼上文字");
+              } else {
+                showToast("無法讀取剪貼簿，請確認瀏覽器允許貼上權限");
+              }
+            } catch (e) {
+              showToast("無法存取剪貼簿，請在裝置設定中允許網站存取");
             }
-         }
-      });
+          }
+        });
 
       // 初始 UI 狀態
       updatePropertiesPanel();
