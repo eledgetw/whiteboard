@@ -1481,10 +1481,25 @@
             // 收合狀態：箭頭朝下
             togglePanelIcon.innerHTML =
               '<polyline points="6 9 12 15 18 9"></polyline>';
+            // 收合時：記錄原位置並移至最底
+            propertiesPanel.dataset.origTop = propertiesPanel.style.top || "";
+            propertiesPanel.dataset.origBottom = propertiesPanel.style.bottom || "";
+            propertiesPanel.style.top = "auto";
+            propertiesPanel.style.bottom = "16px";
           } else {
             // 展開狀態：箭頭朝上
             togglePanelIcon.innerHTML =
               '<polyline points="18 15 12 9 6 15"></polyline>';
+            // 展開時：恢復原位置
+            propertiesPanel.style.top = propertiesPanel.dataset.origTop || "";
+            propertiesPanel.style.bottom = propertiesPanel.dataset.origBottom || "";
+          }
+        });
+
+        // 當點擊收合後的格式視窗把手時，自動彈開並回到原位
+        document.getElementById("panel-drag-handle").addEventListener("click", (e) => {
+          if (propertiesContent.classList.contains("hidden") && !e.target.closest("#toggle-panel-btn")) {
+            togglePanelBtn.click();
           }
         });
       }
